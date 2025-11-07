@@ -2,7 +2,7 @@ import ReactGA from 'react-ga4';
 
 // Initialize GA4
 export const initGA = () => {
-  const GA_MEASUREMENT_ID = "G-2WJS44R7VW";
+  const GA_MEASUREMENT_ID = "G-CXCDSHS6N2";
   
   if (!GA_MEASUREMENT_ID) {
     console.warn('GA Measurement ID not found');
