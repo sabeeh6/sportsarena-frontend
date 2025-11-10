@@ -1,92 +1,116 @@
+// src/utils/analytics.js
 import ReactGA from 'react-ga4';
 
-// Initialize GA4
+const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
+let isInitialized = false; // Prevent multiple initializations
+
+// ============================================
+// INITIALIZE GA (Only once)
+// ============================================
 export const initGA = () => {
-  const GA_MEASUREMENT_ID = "G-CXCDSHS6N2";
-  
+  // Check if already initialized
+  if (isInitialized) {
+    console.warn("⚠️ GA already initialized");
+    return true;
+  }
+
+  // Check consent
+  const consent = localStorage.getItem("userConsent");
+  if (consent !== "accepted") {
+    console.log("🚫 GA blocked - No consent");
+    return false;
+  }
+
+  // Check GA ID
   if (!GA_MEASUREMENT_ID) {
-    console.warn('GA Measurement ID not found');
+    console.error("❌ GA Measurement ID missing");
+    return false;
+  }
+
+  try {
+    ReactGA.initialize(GA_MEASUREMENT_ID, {
+      gaOptions: {
+        send_page_view: false, // Manual page view tracking
+        anonymize_ip: true, // GDPR compliance
+      },
+      gtagOptions: {
+        cookie_flags: 'SameSite=None;Secure',
+      },
+    });
+
+    isInitialized = true;
+    console.log("✅ Google Analytics initialized successfully");
+    return true;
+  } catch (error) {
+    console.error("❌ GA initialization failed:", error);
+    return false;
+  }
+};
+
+// ============================================
+// TRACK PAGE VIEWS
+// ============================================
+export const trackPageView = (path, title) => {
+  // Only track if initialized and consent given
+  if (!isInitialized) {
+    console.log("🚫 Page view not tracked - GA not initialized");
     return;
   }
 
-  ReactGA.initialize(GA_MEASUREMENT_ID, {
-    gaOptions: {
-      send_page_view: false, // Manual page view tracking
-    },
-    gtagOptions: {
-      anonymize_ip: true, // GDPR compliance
-      cookie_flags: 'SameSite=None;Secure',
-    },
-  });
+  const consent = localStorage.getItem("userConsent");
+  if (consent !== "accepted") {
+    console.log("🚫 Page view not tracked - No consent");
+    return;
+  }
 
-  console.log('Google Analytics initialized');
+  try {
+    ReactGA.send({
+      hitType: 'pageview',
+      page: path,
+      title: title || document.title,
+    });
+    console.log("📊 Page view tracked:", path);
+  } catch (error) {
+    console.error("❌ Page view tracking failed:", error);
+  }
 };
-// Track Page Views
-export const trackPageView = (path, title) => {
-  ReactGA.send({
-    hitType: 'pageview',
-    page: path,
-    title: title || document.title,
-  });
-};
-// Track Events (Button clicks, etc.)
+
+// ============================================
+// TRACK EVENTS
+// ============================================
 export const trackEvent = (category, action, label = '', value = 0) => {
-  ReactGA.event({
-    category,
-    action,
-    label,
-    value,
-  });
+  if (!isInitialized) {
+    console.log("🚫 Event not tracked - GA not initialized");
+    return;
+  }
+
+  const consent = localStorage.getItem("userConsent");
+  if (consent !== "accepted") {
+    console.log("🚫 Event not tracked - No consent");
+    return;
+  }
+
+  try {
+    ReactGA.event({
+      category,
+      action,
+      label,
+      value,
+    });
+    console.log("📊 Event tracked:", { category, action, label });
+  } catch (error) {
+    console.error("❌ Event tracking failed:", error);
+  }
+};
+
+// ============================================
+// RESET GA (For consent withdrawal)
+// ============================================
+export const resetGA = () => {
+  isInitialized = false;
+  console.log("🔄 GA reset");
 };
 // Track Button Clicks
 export const trackButtonClick = (buttonName, location) => {
   trackEvent('Button', 'Click', `${buttonName} - ${location}`);
-};
-// Track Form Submissions
-export const trackFormSubmit = (formName, success = true) => {
-  trackEvent('Form', success ? 'Submit Success' : 'Submit Failed', formName);
-};
-// Track Custom Events
-export const trackCustomEvent = (eventName, params = {}) => {
-  ReactGA.event(eventName, params);
-};
-// Track Scroll Depth
-export const trackScrollDepth = (percentage) => {
-  trackEvent('Scroll', 'Depth', `${percentage}%`, percentage);
-};
-// Track File Downloads
-export const trackDownload = (fileName, fileType) => {
-  trackEvent('Download', 'File', `${fileName} (${fileType})`);
-};
-// Track Outbound Links
-export const trackOutboundLink = (url) => {
-  trackEvent('Outbound Link', 'Click', url);
-};
-// Track Search
-export const trackSearch = (searchTerm) => {
-  trackEvent('Search', 'Query', searchTerm);
-};
-// Track Video
-export const trackVideo = (action, videoName) => {
-  trackEvent('Video', action, videoName);
-};
-// Track Errors
-export const trackError = (errorMessage, errorType = 'JavaScript Error') => {
-  trackEvent('Error', errorType, errorMessage);
-};
-// Track User Timing
-export const trackTiming = (category, variable, value, label) => {
-  ReactGA.timing({
-    category,
-    variable,
-    value,
-    label,
-  });
-};
-// Set User Properties
-export const setUserProperties = (userId, properties = {}) => {
-  ReactGA.set({
-    userId,
-    ...properties,
-  });
 };

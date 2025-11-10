@@ -1,6 +1,3 @@
-import React from "react";
-import { Sparkles } from "lucide-react";
-// import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../../Components/Navbar.jsx";
 import Footer from "../../Components/Footer.jsx";
 import AnimatedImageWithText from "../../Components/Header.jsx";
