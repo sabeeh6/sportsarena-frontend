@@ -7,6 +7,9 @@ import PrivacyPolicyPage from "./pages/privacypolicy.jsx";
 import { initGA, trackPageView } from "./utils/analytics";
 import CookieBanner from "./pages/Home/cookieConsent.jsx";
 import NotFound from "./pages/notFound.jsx";
+import AdminAuth from "./pages/auth/AdminAuth.jsx";
+import DashboardAdmin from "./pages/Dashboard.jsx";
+import ScrollToTop from "./Components/scroll.jsx";
 
 function App() {
   const location = useLocation();
@@ -70,6 +73,7 @@ function App() {
   return (
     <>
       {/* Cookie Consent Banner */}
+      <ScrollToTop/>
       <CookieBanner onAccept={handleConsentAccept} />
 
       <Routes>
@@ -78,6 +82,8 @@ function App() {
         <Route path="/tournaments/:category" element={<Tournament />} />
         <Route path="/" element={<Dashboard />} />
         <Route path="/policy" element={<PrivacyPolicyPage />} />
+        <Route path ="/auth" element={<AdminAuth/>}/>
+        <Route path ="/panel" element={<DashboardAdmin/>}/>
         <Route path="*" element={<NotFound/>} />
 
       </Routes>
