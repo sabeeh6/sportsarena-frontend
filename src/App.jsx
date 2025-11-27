@@ -8,10 +8,11 @@ import { initGA, trackPageView } from "./utils/analytics";
 import CookieBanner from "./pages/Home/cookieConsent.jsx";
 import NotFound from "./pages/notFound.jsx";
 import AdminAuth from "./pages/auth/AdminAuth.jsx";
-import DashboardAdmin from "./pages/Dashboard.jsx";
 import ScrollToTop from "./Components/scroll.jsx";
 import Login from "./pages/auth/login.jsx";
 import RegistrationPage from "./pages/auth/signUp.jsx";
+import DashboardAdmin from "./pages/admin/adminpanel.jsx";
+// import { DashboardAdmin } from "./pages/admin/adminPanel.jsx";
 
 function App() {
   const location = useLocation();

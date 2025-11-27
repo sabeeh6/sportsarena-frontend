@@ -1,11 +1,59 @@
-import React from "react";
 // import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
 import Header from "../Components/Navbar";
 import Head from "../Components/Header.jsx";
 import Footer from "../Components/Footer";
+import React, { useState } from "react";
+import { Sparkles, Send, CheckCircle, XCircle } from "lucide-react";
 
 export default function PrivacyPolicyPage() {
+   const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      // Replace with your actual API endpoint
+      const response = await fetch('/api/contact-privacy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        
+        setTimeout(() => setSubmitStatus(null), 5000);
+      } else {
+        setSubmitStatus('error');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <>
     
@@ -206,10 +254,264 @@ The information collected may include device information, IP addresses, browser 
 </ul>
       </section>
 
-    <Footer/>
-      <footer className="text-center py-8 text-slate-400 text-sm border-t border-slate-800">
+    <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
+      {/* Navbar Placeholder
+      <nav className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-lg">SA</span>
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
+              Sports Arena
+            </span>
+          </div>
+          <div className="flex gap-6">
+            <a href="#" className="hover:text-orange-400 transition">Home</a>
+            <a href="#" className="hover:text-orange-400 transition">Tournaments</a>
+            <a href="#" className="hover:text-orange-400 transition">Apply</a>
+          </div>
+        </div>
+      </nav>
+
+      {/* Header Section */}
+      {/* <div className="max-w-4xl mx-auto px-6 py-16">
+        <div className="text-center mb-12 animate-fade-in">
+          <h1 className="text-5xl font-extrabold mb-4 bg-gradient-to-r from-orange-400 via-red-500 to-orange-600 bg-clip-text text-transparent">
+            Privacy Policy
+          </h1>
+          <p className="text-slate-400 text-lg">
+            Learn how we collect, use, and protect your personal information.
+          </p>
+        </div>
+      </div>
+
+      {/* Content Section */}
+      {/* <section className="max-w-4xl mx-auto px-6 pb-12 text-slate-300 space-y-6">
+        <p className="text-sm text-slate-400"><b>Last updated:</b> November 03, 2025</p>
+        <p>This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.</p>
+
+        <h2 className="text-2xl font-bold text-white mt-8 mb-4">Interpretation and Definitions</h2>
+        <h3 className="text-xl font-semibold text-orange-400">Interpretation</h3>
+        <p>The words whose initial letters are capitalized have meanings defined under the following conditions.</p>
+
+        <h3 className="text-xl font-semibold text-orange-400 mt-6">Definitions</h3>
+        <p>For the purposes of this Privacy Policy:</p>
+        <ul className="list-disc list-inside space-y-2 ml-4">
+          <li><strong className="text-white">Account</strong> means a unique account created for You to access our Service.</li>
+          <li><strong className="text-white">Company</strong> refers to Sports Arena.</li>
+          <li><strong className="text-white">Cookies</strong> are small files placed on Your device by a website.</li>
+          <li><strong className="text-white">Country</strong> refers to Pakistan</li>
+          <li><strong className="text-white">Personal Data</strong> is any information that relates to an identified individual.</li>
+        </ul>
+
+        <h2 className="text-2xl font-bold text-white mt-8 mb-4">Collecting and Using Your Personal Data</h2>
+        <h4 className="text-lg font-semibold text-orange-400">Personal Data</h4>
+        <p>While using Our Service, We may ask You to provide certain personally identifiable information including:</p>
+        <ul className="list-disc list-inside space-y-2 ml-4">
+          <li>Email address</li>
+          <li>First name and last name</li>
+          <li>Phone number</li>
+          <li>Address, State, Province, ZIP/Postal code, City</li>
+        </ul>
+
+        <h3 className="text-xl font-semibold text-orange-400 mt-6">Use of Your Personal Data</h3>
+        <p>The Company may use Personal Data for the following purposes:</p>
+        <ul className="list-disc list-inside space-y-2 ml-4">
+          <li><strong className="text-white">To provide and maintain our Service</strong></li>
+          <li><strong className="text-white">To manage Your Account</strong></li>
+          <li><strong className="text-white">To contact You</strong> regarding updates or communications</li>
+          <li><strong className="text-white">To manage Your requests</strong></li>
+        </ul>
+
+        <h2 className="text-2xl font-bold text-white mt-8 mb-4">Security of Your Personal Data</h2>
+        <p>The security of Your Personal Data is important to Us, but remember that no method of transmission over the Internet is 100% secure.</p>
+
+        <h2 className="text-2xl font-bold text-white mt-8 mb-4">Contact Us</h2>
+        <p>If you want to remove or delete your data/account or have any questions about this Privacy Policy, you can contact us by email: <a href="mailto:gathcooley@gmail.com" className="text-orange-400 hover:underline">gathcooley@gmail.com</a></p>
+      </section> */}
+
+      {/* Contact Form Section */}
+      <section className="max-w-4xl mx-auto px-6 py-16">
+        <div className="relative bg-slate-900/50 backdrop-blur-xl rounded-3xl p-10 border border-slate-800 shadow-2xl overflow-hidden">
+          {/* Animated Background Effects */}
+          <div className="absolute top-0 right-0 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
+          <div className="absolute bottom-0 left-0 w-56 h-56 bg-red-500/10 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '1s'}}></div>
+          
+          <div className="relative z-10">
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-6">
+              <Sparkles className="w-8 h-8 text-orange-400 animate-pulse" />
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+                Have Questions?
+              </h2>
+            </div>
+            
+            <p className="text-slate-400 mb-8 text-lg">
+              Need clarification about our privacy policy or want to submit a data request? Send us a message and we'll respond as soon as possible.
+            </p>
+
+            {/* Form */}
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {/* Name Input */}
+              <div className="group transform transition-all duration-300 hover:scale-[1.01]">
+                <label htmlFor="name" className="block text-sm font-semibold text-slate-300 mb-2">
+                  Full Name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 hover:border-slate-600"
+                  placeholder="Enter your full name"
+                />
+              </div>
+
+              {/* Email Input */}
+              <div className="group transform transition-all duration-300 hover:scale-[1.01]">
+                <label htmlFor="email" className="block text-sm font-semibold text-slate-300 mb-2">
+                  Email Address <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 hover:border-slate-600"
+                  placeholder="your.email@example.com"
+                />
+              </div>
+
+              {/* Subject Input */}
+              {/* <div className="group transform transition-all duration-300 hover:scale-[1.01]">
+                <label htmlFor="subject" className="block text-sm font-semibold text-slate-300 mb-2">
+                  Subject <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="subject"
+                  name="subject"
+                  required
+                  value={formData.subject}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 hover:border-slate-600"
+                  placeholder="What is this regarding?"
+                />
+              </div> */}
+
+              {/* Message Textarea */}
+              <div className="group transform transition-all duration-300 hover:scale-[1.01]">
+                <label htmlFor="message" className="block text-sm font-semibold text-slate-300 mb-2">
+                  Your Message <span className="text-red-400">*</span>
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  required
+                  value={formData.message}
+                  onChange={handleChange}
+                  rows="6"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 resize-none hover:border-slate-600"
+                  placeholder="Write your message or inquiry here..."
+                ></textarea>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-orange-500/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 group"
+              >
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sending Message...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    Send Message
+                  </>
+                )}
+              </button>
+
+              {/* Success Message */}
+              {submitStatus === 'success' && (
+                <div className="bg-green-500/20 border border-green-500/50 rounded-xl p-4 flex items-center gap-3 text-green-300 animate-fade-in">
+                  <CheckCircle className="w-6 h-6 flex-shrink-0" />
+                  <p className="font-medium">Message sent successfully! We'll get back to you soon.</p>
+                </div>
+              )}
+              
+              {/* Error Message */}
+              {submitStatus === 'error' && (
+                <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4 flex items-center gap-3 text-red-300 animate-fade-in">
+                  <XCircle className="w-6 h-6 flex-shrink-0" />
+                  <p className="font-medium">Failed to send message. Please try again or email us directly at gathcooley@gmail.com</p>
+                </div>
+              )}
+            </form>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer
+      <footer className="text-center py-12 text-slate-500 text-sm border-t border-slate-800 mt-16">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="mb-4">© 2025 Sports Arena. All rights reserved.</p>
+          <div className="flex justify-center gap-6 text-xs">
+            <a href="#" className="hover:text-orange-400 transition">Help Center</a>
+            <a href="#" className="hover:text-orange-400 transition">Terms of Service</a>
+            <a href="#" className="hover:text-orange-400 transition">Privacy Policy</a>
+            <a href="#" className="hover:text-orange-400 transition">FAQs</a>
+          </div>
+        </div>
+      </footer> */}
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes pulse-slow {
+          0%, 100% {
+            opacity: 0.3;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.5;
+            transform: scale(1.1);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out forwards;
+        }
+
+        .animate-pulse-slow {
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+      `}</style>
+      <Footer/>
+      {/* <footer className="text-center py-8 text-slate-400 text-sm border-t border-slate-800">
         <p>© 2025 Sports Arena. All rights reserved.</p>
-      </footer>
+      </footer> */}
+    </main>
     </main>
     </>
   );
