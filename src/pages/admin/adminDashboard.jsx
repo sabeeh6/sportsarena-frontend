@@ -25,7 +25,7 @@ export const DashboardPage = () => {
         transition={{ delay: 0.2 }}
         className="text-4xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent"
       >
-        Welcome Back, Admin 👋
+        Welcome Back, Admin 
       </Motion.h1>
 
       {/* Animated Cards */}

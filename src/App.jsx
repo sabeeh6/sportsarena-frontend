@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Dashboard from "./pages/Home/Home.jsx";
 import Tournament from "./pages/Tournaments/Tournament.jsx";
@@ -12,7 +12,9 @@ import ScrollToTop from "./Components/scroll.jsx";
 import Login from "./pages/auth/login.jsx";
 import RegistrationPage from "./pages/auth/signUp.jsx";
 import DashboardAdmin from "./pages/admin/adminpanel.jsx";
-// import { DashboardAdmin } from "./pages/admin/adminPanel.jsx";
+import AddOrganizorForm from "./pages/admin/organizorForm.jsx";
+import { DashboardPage } from "./pages/admin/adminDashboard.jsx";
+import { OrganizorsPage } from "./pages/admin/organizor.jsx";
 
 function App() {
   const location = useLocation();
@@ -76,21 +78,31 @@ function App() {
   return (
     <>
       {/* Cookie Consent Banner */}
-      <ScrollToTop/>
+      <ScrollToTop />
       <CookieBanner onAccept={handleConsentAccept} />
 
       <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Dashboard />} />
         <Route path="/apply" element={<TournamentApplicationForm />} />
         <Route path="/tournaments" element={<Tournament />} />
         <Route path="/tournaments/:category" element={<Tournament />} />
-        <Route path="/" element={<Dashboard />} />
         <Route path="/policy" element={<PrivacyPolicyPage />} />
-        <Route path ="/auth" element={<AdminAuth/>}/>
-        <Route path ="/panel" element={<DashboardAdmin/>}/>
-        <Route path="*" element={<NotFound/>} />
+        
+        {/* Auth Routes */}
+        <Route path="/auth" element={<AdminAuth />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signUp" element={<RegistrationPage />} />
 
+        {/* Admin Panel Routes with Nested Routes */}
+        <Route path="/panel" element={<DashboardAdmin />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="organizors" element={<OrganizorsPage />} />
+          <Route path="add-organizor" element={<AddOrganizorForm />} />
+        </Route>
+
+        {/* 404 Not Found */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );

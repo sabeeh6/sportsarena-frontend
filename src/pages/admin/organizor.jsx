@@ -2,19 +2,10 @@ import { useState } from "react";
 import { DataTable } from "../../Components/Table.jsx";
 import { motion as Motion } from "framer-motion";
 import {
-  LayoutDashboard,
-  Users,
-  DollarSign,
-  BarChart3,
-  LogOut,
-  Menu,
   Edit,
   Trash2,
   Power,
   PowerOff,
-  Search,
-  Filter,
-  Download,
 } from "lucide-react";
 
 export const OrganizorsPage = () => {
@@ -146,26 +137,28 @@ export const OrganizorsPage = () => {
       <Motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
             Organizors Management
           </h1>
-          <p className="text-gray-400 mt-1">
+          <p className="text-gray-400 mt-1 text-sm md:text-base">
             Manage and monitor event organizors
           </p>
         </div>
         <Motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-orange-500/50 transition"
+          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-orange-500/50 transition w-full md:w-auto"
         >
           + Add Organizor
         </Motion.button>
       </Motion.div>
 
-      <DataTable columns={columns} data={organizors} />
+      <div className="overflow-x-auto">
+        <DataTable columns={columns} data={organizors} />
+      </div>
     </div>
   );
-};
+}
