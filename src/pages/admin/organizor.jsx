@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DataTable } from "../../Components/Table.jsx";
 import { motion as Motion } from "framer-motion";
 import {
@@ -6,56 +6,142 @@ import {
   Trash2,
   Power,
   PowerOff,
+  Loader2,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
 
 export const OrganizorsPage = () => {
-  const [organizors, setOrganizors] = useState([
-    {
-      id: 1,
-      name: "Ahmed Khan",
-      email: "ahmed@example.com",
-      phone: "+92 300 1234567",
-      events: 12,
-      status: "active",
-      joinDate: "2024-01-15",
-    },
-    {
-      id: 2,
-      name: "Sara Ali",
-      email: "sara@example.com",
-      phone: "+92 321 9876543",
-      events: 8,
-      status: "active",
-      joinDate: "2024-02-20",
-    },
-    {
-      id: 3,
-      name: "Hassan Raza",
-      email: "hassan@example.com",
-      phone: "+92 333 5551234",
-      events: 15,
-      status: "inactive",
-      joinDate: "2023-11-10",
-    },
-    {
-      id: 4,
-      name: "Fatima Noor",
-      email: "fatima@example.com",
-      phone: "+92 345 7778888",
-      events: 6,
-      status: "active",
-      joinDate: "2024-03-05",
-    },
-  ]);
+  const [organizors, setOrganizors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [actionLoading, setActionLoading] = useState(null);
+  const navigate = useNavigate();
+  const itemsPerPage = 5;
 
-  const toggleStatus = (id) => {
-    setOrganizors((prev) =>
-      prev.map((org) =>
-        org.id === id
-          ? { ...org, status: org.status === "active" ? "inactive" : "active" }
-          : org
-      )
-    );
+  // Fetch organizers from API
+  const fetchOrganizors = async (page = 1) => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:3009/api/admin/get-all-organizor`
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.data && data.data.length > 0) {
+          setOrganizors(data.data);
+          setTotalPages(Math.ceil(data.total / itemsPerPage) || 1);
+          if (data.message) {
+            toast.success(data.message);
+          }
+        } else {
+          setOrganizors([]);
+          toast.info("No organizers found");
+        }
+      } else {
+        toast.error(data.message || "Failed to fetch organizers");
+        setOrganizors([]);
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Network error. Please check your connection.");
+      setOrganizors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrganizors(currentPage);
+  }, [currentPage]);
+
+  const handleClick = () => {
+    navigate("/panel/organizors/add-organizor");
+  };
+
+  // Toggle organizer status (active/inactive)
+  const toggleStatus = async (id, currentStatus) => {
+    setActionLoading(id);
+    const endpoint =
+      currentStatus === "active"
+        ? `http://localhost:3009/api/admin/inactive/${id}`
+        : `http://localhost:3009/api/admin/active/${id}`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(
+          data.message || `Organizer ${currentStatus === "active" ? "deactivated" : "activated"} successfully`
+        );
+        // Refresh the list
+        fetchOrganizors(currentPage);
+      } else {
+        toast.error(data.message || "Failed to update status");
+      }
+    } catch (error) {
+      console.error("Status toggle error:", error);
+      toast.error("Network error. Please try again.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Navigate to edit page
+  const handleEdit = (organizor) => {
+    navigate(`/panel/organizors/add-organizor`, { state: { organizor } });
+  };
+
+  // Delete organizer (if you have delete API)
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this organizer?")) {
+      return;
+    }
+
+    setActionLoading(id);
+    try {
+      const response = await fetch(
+        `http://localhost:3009/api/admin/delete-organizor/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || "Organizer deleted successfully");
+        fetchOrganizors(currentPage);
+      } else {
+        toast.error(data.message || "Failed to delete organizer");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Network error. Please try again.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Pagination handlers
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
   };
 
   const columns = [
@@ -64,12 +150,12 @@ export const OrganizorsPage = () => {
       accessor: "name",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center font-bold">
-            {row.name.charAt(0)}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center font-bold text-white">
+            {row.name?.charAt(0)?.toUpperCase() || "?"}
           </div>
           <div>
-            <p className="font-semibold text-white">{row.name}</p>
-            <p className="text-xs text-gray-400">{row.email}</p>
+            <p className="font-semibold text-white">{row.name || "N/A"}</p>
+            <p className="text-xs text-gray-400">{row.email || "N/A"}</p>
           </div>
         </div>
       ),
@@ -87,11 +173,19 @@ export const OrganizorsPage = () => {
               : "bg-red-500/20 text-red-400 border border-red-500/30"
           }`}
         >
-          {row.status.charAt(0).toUpperCase() + row.status.slice(1)}
+          {row.status?.charAt(0)?.toUpperCase() + row.status?.slice(1) || "Unknown"}
         </span>
       ),
     },
-    { header: "Join Date", accessor: "joinDate" },
+    { 
+      header: "Join Date", 
+      accessor: "joinDate",
+      render: (row) => (
+        <span className="text-gray-300">
+          {row.joinDate ? new Date(row.joinDate).toLocaleDateString() : "N/A"}
+        </span>
+      )
+    },
     {
       header: "Actions",
       accessor: "actions",
@@ -100,14 +194,17 @@ export const OrganizorsPage = () => {
           <Motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => toggleStatus(row.id)}
+            onClick={() => toggleStatus(row.id || row._id, row.status)}
+            disabled={actionLoading === (row.id || row._id)}
             className={`p-2 rounded-lg transition ${
               row.status === "active"
                 ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
                 : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
-            }`}
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            {row.status === "active" ? (
+            {actionLoading === (row.id || row._id) ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : row.status === "active" ? (
               <PowerOff className="w-4 h-4" />
             ) : (
               <Power className="w-4 h-4" />
@@ -116,49 +213,142 @@ export const OrganizorsPage = () => {
           <Motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            onClick={() => handleEdit(row)}
             className="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition"
           >
             <Edit className="w-4 h-4" />
           </Motion.button>
-          <Motion.button
+          {/* <Motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition"
+            onClick={() => handleDelete(row.id || row._id)}
+            disabled={actionLoading === (row.id || row._id)}
+            className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Trash2 className="w-4 h-4" />
-          </Motion.button>
+            {actionLoading === (row.id || row._id) ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+          </Motion.button> */}
         </div>
       ),
     },
   ];
 
   return (
-    <div className="space-y-6">
-      <Motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-      >
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
-            Organizors Management
-          </h1>
-          <p className="text-gray-400 mt-1 text-sm md:text-base">
-            Manage and monitor event organizors
-          </p>
-        </div>
-        <Motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-orange-500/50 transition w-full md:w-auto"
+    <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "#1f2937",
+            color: "#fff",
+            border: "1px solid #374151",
+          },
+          success: {
+            iconTheme: {
+              primary: "#10b981",
+              secondary: "#fff",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#ef4444",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
+      <div className="space-y-6">
+        <Motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
         >
-          + Add Organizor
-        </Motion.button>
-      </Motion.div>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
+              Organizers Management
+            </h1>
+            <p className="text-gray-400 mt-1 text-sm md:text-base">
+              Manage and monitor event organizers
+            </p>
+          </div>
+          <Motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleClick}
+            className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-orange-500/50 transition w-full md:w-auto"
+          >
+            + Add Organizer
+          </Motion.button>
+        </Motion.div>
 
-      <div className="overflow-x-auto">
-        <DataTable columns={columns} data={organizors} />
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
+          </div>
+        ) : organizors.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800 mb-4">
+              <svg
+                className="w-8 h-8 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-300 mb-2">
+              No Organizers Found
+            </h3>
+            <p className="text-gray-500">
+              Start by adding your first organizer
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <DataTable columns={columns} data={organizors} />
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between px-4 py-3 bg-gray-800/50 rounded-xl border border-gray-700">
+              <div className="text-sm text-gray-400">
+                Page {currentPage} of {totalPages}
+              </div>
+              <div className="flex gap-2">
+                <Motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </Motion.button>
+                <Motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg hover:shadow-orange-500/50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </Motion.button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
-    </div>
+      <Outlet />
+    </>
   );
-}
+};

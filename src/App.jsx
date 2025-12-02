@@ -94,12 +94,16 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signUp" element={<RegistrationPage />} />
 
-        {/* Admin Panel Routes with Nested Routes */}
-        <Route path="/panel" element={<DashboardAdmin />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="organizors" element={<OrganizorsPage />} />
-          <Route path="add-organizor" element={<AddOrganizorForm />} />
-        </Route>
+      <Route path="/panel" element={<DashboardAdmin />}>
+  <Route index element={<DashboardPage />} />
+
+  <Route path="organizors">
+    <Route index element={<OrganizorsPage />} />
+    <Route path="add-organizor" element={<AddOrganizorForm />} />
+  </Route>
+
+</Route>
+
 
         {/* 404 Not Found */}
         <Route path="*" element={<NotFound />} />
