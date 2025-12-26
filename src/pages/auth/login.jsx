@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Lock, Eye, EyeOff, Trophy, Zap, Shield, ArrowRight, Chrome, Facebook } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Trophy, Zap, Shield, ArrowRight, Facebook } from 'lucide-react';
 import api from '../../api/api';
-import {useNavigate} from "react-router-dom"
+import { useNavigate } from "react-router-dom";
+import { clearAuthData } from '../../utils/auth';
 
 const SportsLoginPage = () => {
   const [email, setEmail] = useState('');
@@ -11,7 +12,12 @@ const SportsLoginPage = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate =useNavigate();
+  const navigate = useNavigate();
+
+  // Clear auth data when login page loads
+  useEffect(() => {
+    clearAuthData();
+  }, []);
 
   // Generate animated particles
   useEffect(() => {
@@ -26,9 +32,9 @@ const SportsLoginPage = () => {
     setParticles(newParticles);
   }, []);
 
-const handlePage = ()=>{
-    navigate("/signUp")
-}
+  const handlePage = () => {
+    navigate("/signUp");
+  };
 
   // Mouse move effect
   useEffect(() => {
@@ -39,49 +45,100 @@ const handlePage = ()=>{
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-const handleLogin = async () => {
-  setError('');
+  const handleLogin = async (e) => {
+    e?.preventDefault();
+    setError('');
 
-  if (!email || !password) {
-    setError("Please fill in all fields.");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    const response = await api.post("http://localhost:3009/api/auth/login-user", {
-      email,
-      password
-    });
-
-    // API response (you can console.log this)
-    const userData = response.data;
-
-    // Save token (if exists)
-    if (userData?.token) {
-      localStorage.setItem("authToken", userData.token);
+    // Validation
+    if (!email || !password) {
+      setError("Please fill in all fields.");
+      return;
     }
 
-    navigate("/panel")
-
-    console.log("User => ", userData);
-    // alert("🎉 Login Successful!");
-
-  } catch (err) {
-    console.log(err);
-
-    if (err.response?.data?.message) {
-      setError(err.response.data.message);
-    } else {
-      setError("Something went wrong. Try again.");
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
     }
 
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
 
+      const response = await api.post("http://localhost:3009/api/auth/login-user", {
+        email: email.trim().toLowerCase(),
+        password
+      });
+
+      const userData = response.data;
+
+      // Validate response structure
+      if (!userData?.data?.accessToken) {
+        throw new Error("Invalid response from server");
+      }
+
+      const token = userData.data.accessToken;
+      const user = userData.data.user;
+
+      // Store user data FIRST
+      const userInfo = {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role || 'user',
+        createdAt: user.createdAt || new Date().toISOString()
+      };
+
+      localStorage.setItem('user', JSON.stringify(userInfo));
+      localStorage.setItem('lastLogin', new Date().toISOString());
+
+      // THEN set cookie
+      const maxAge = 7 * 24 * 60 * 60; // 7 days in seconds
+      document.cookie = `authToken=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+
+      console.log("✅ Login Successful");
+      console.log("User:", userInfo);
+      console.log("Token:", token);
+      console.log("Cookie set:", document.cookie);
+
+      // Wait a bit to ensure everything is saved
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Navigate with window.location for full reload (ensures all components re-check auth)
+      const redirectPath = userInfo.role === 'admin' ? '/panel' : '/';
+      window.location.href = redirectPath;
+
+    } catch (err) {
+      console.error("❌ Login Error:", err);
+
+      // Clear any partial auth data on error
+      clearAuthData();
+
+      // Handle different error types
+      if (err.response?.status === 401) {
+        setError("Invalid email or password.");
+      } else if (err.response?.status === 404) {
+        setError("Account not found. Please sign up.");
+      } else if (err.response?.status === 403) {
+        setError("Account is disabled. Contact support.");
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError("Connection failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !loading) {
+      handleLogin();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 relative overflow-hidden flex items-center justify-center p-4">
@@ -165,22 +222,6 @@ const handleLogin = async () => {
                 </div>
               ))}
             </div>
-
-            {/* Stats */}
-            {/* <div className="grid grid-cols-3 gap-4 mt-12">
-              {[
-                { num: '50K+', label: 'Players' },
-                { num: '1000+', label: 'Tournaments' },
-                { num: '$2M+', label: 'Prize Pool' }
-              ].map((stat, idx) => (
-                <div key={idx} className="text-center p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-                  <div className="text-3xl font-black bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
-                    {stat.num}
-                  </div>
-                  <div className="text-gray-400 text-sm mt-1">{stat.label}</div>
-                </div>
-              ))}
-            </div> */}
           </div>
 
           {/* Right Side - Login Form */}
@@ -197,7 +238,7 @@ const handleLogin = async () => {
                     <Trophy className="w-10 h-10 text-white" />
                   </div>
                 </div>
-                <h2 className="text-4xl font-black bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent  mb-2">
+                <h2 className="text-4xl font-black bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent mb-2">
                   Welcome Back!
                 </h2>
                 <p className="text-gray-400 text-lg">
@@ -207,7 +248,11 @@ const handleLogin = async () => {
 
               {/* Social Login */}
               <div className="space-y-3 mb-8">
-                <button className="w-full flex items-center justify-center space-x-3 bg-white hover:bg-gray-100 text-gray-900 font-semibold py-4 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg">
+                <button 
+                  type="button"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center space-x-3 bg-white hover:bg-gray-100 text-gray-900 font-semibold py-4 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
                   <svg className="w-6 h-6" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -217,7 +262,11 @@ const handleLogin = async () => {
                   <span>Continue with Google</span>
                 </button>
 
-                <button className="w-full flex items-center justify-center space-x-3 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold py-4 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg">
+                <button 
+                  type="button"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center space-x-3 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold py-4 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
                   <Facebook className="w-6 h-6" fill="currentColor" />
                   <span>Continue with Facebook</span>
                 </button>
@@ -235,8 +284,9 @@ const handleLogin = async () => {
                 </div>
               </div>
 
-              {/* Email Input */}
-              <div className="space-y-6">
+              {/* Login Form */}
+              <form onSubmit={handleLogin} className="space-y-6">
+                {/* Email Input */}
                 <div className="group">
                   <label className="block text-sm font-semibold text-gray-300 mb-2 ml-1">
                     Email Address
@@ -247,8 +297,12 @@ const handleLogin = async () => {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      onKeyPress={handleKeyPress}
                       placeholder="your@email.com"
-                      className="w-full bg-slate-800/50 border border-white/10 text-white rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all placeholder:text-gray-500"
+                      disabled={loading}
+                      className="w-full bg-slate-800/50 border border-white/10 text-white rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all placeholder:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      autoComplete="email"
+                      required
                     />
                   </div>
                 </div>
@@ -264,12 +318,18 @@ const handleLogin = async () => {
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      onKeyPress={handleKeyPress}
                       placeholder="••••••••••"
-                      className="w-full bg-slate-800/50 border border-white/10 text-white rounded-xl py-4 pl-12 pr-12 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all placeholder:text-gray-500"
+                      disabled={loading}
+                      className="w-full bg-slate-800/50 border border-white/10 text-white rounded-xl py-4 pl-12 pr-12 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all placeholder:text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      autoComplete="current-password"
+                      required
                     />
                     <button
+                      type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
+                      disabled={loading}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors disabled:opacity-50"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -281,51 +341,55 @@ const handleLogin = async () => {
                   <label className="flex items-center space-x-2 cursor-pointer group">
                     <input 
                       type="checkbox" 
-                      className="w-4 h-4 rounded border-white/20 bg-slate-800 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-900"
+                      disabled={loading}
+                      className="w-4 h-4 rounded border-white/20 bg-slate-800 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-900 disabled:opacity-50"
                     />
                     <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
                       Remember me
                     </span>
                   </label>
-                  <button className="text-sm text-orange-500 hover:text-orange-400 font-semibold transition-colors">
+                  <button 
+                    type="button"
+                    disabled={loading}
+                    className="text-sm text-orange-500 hover:text-orange-400 font-semibold transition-colors disabled:opacity-50"
+                  >
                     Forgot Password?
                   </button>
                 </div>
+
+                {/* Error Message */}
                 {error && (
-                    <p className="text-red-500 text-sm font-semibold bg-red-500/10 p-3 rounded-lg border border-red-500/20">
-                        {error}
-                    </p>
+                  <div className="text-red-400 text-sm font-semibold bg-red-500/10 p-3 rounded-lg border border-red-500/20 flex items-start gap-2">
+                    <span className="text-red-500 mt-0.5">⚠</span>
+                    <span>{error}</span>
+                  </div>
                 )}
 
                 {/* Login Button */}
-                {/* <button
-                  onClick={handleLogin}
-                  className="group w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-orange-500/50 flex items-center justify-center space-x-2"
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="group w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-orange-500/50 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  <span className="text-lg">Sign In</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button> */}
-<button
-  onClick={handleLogin}
-  disabled={loading}
-  className="group w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-orange-500/50 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
->
-  <span className="text-lg">
-    {loading ? "Signing In..." : "Sign In"}
-  </span>
-  {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
-</button>
+                  <span className="text-lg">
+                    {loading ? "Signing In..." : "Sign In"}
+                  </span>
+                  {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
+                </button>
+
                 {/* Sign Up Link */}
                 <p className="text-center text-gray-400 text-sm">
                   Don't have an account?{' '}
-                    <button
-                        className="text-orange-500 hover:text-orange-400 font-bold transition-colors cursor-pointer select-none   focus:outline-none  "
-                        onClick={handlePage}
-                        >
-                        Create Account
-                    </button>
+                  <button
+                    type="button"
+                    className="text-orange-500 hover:text-orange-400 font-bold transition-colors cursor-pointer select-none focus:outline-none disabled:opacity-50"
+                    onClick={handlePage}
+                    disabled={loading}
+                  >
+                    Create Account
+                  </button>
                 </p>
-              </div>
+              </form>
 
               {/* Trust Badge */}
               <div className="mt-8 pt-6 border-t border-white/10">

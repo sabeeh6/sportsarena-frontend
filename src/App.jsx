@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation, Outlet } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Dashboard from "./pages/Home/Home.jsx";
 import Tournament from "./pages/Tournaments/Tournament.jsx";
@@ -15,26 +15,23 @@ import DashboardAdmin from "./pages/admin/adminpanel.jsx";
 import AddOrganizorForm from "./pages/admin/organizorForm.jsx";
 import { DashboardPage } from "./pages/admin/adminDashboard.jsx";
 import { OrganizorsPage } from "./pages/admin/organizor.jsx";
+import { PrivateRoute } from "./components/PrivateRoute.jsx";
+import { PublicOnlyRoute } from "./components/PublicOnlyRoute.jsx";
 
 function App() {
   const location = useLocation();
   const [gaInitialized, setGaInitialized] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
 
-  // ============================================
-  // CHECK EXISTING CONSENT ON APP MOUNT
-  // ============================================
   useEffect(() => {
     const checkConsent = async () => {
       const localConsent = localStorage.getItem("userConsent");
       
       if (localConsent === "accepted") {
-        // Initialize GA only once
         if (!gaInitialized) {
           const initialized = initGA();
           if (initialized) {
             setGaInitialized(true);
-            console.log("✅ GA initialized from existing consent");
           }
         }
       }
@@ -45,31 +42,19 @@ function App() {
     checkConsent();
   }, [gaInitialized]);
 
-  // ============================================
-  // TRACK PAGE VIEWS ON ROUTE CHANGE
-  // ============================================
   useEffect(() => {
-    // Only track if GA is initialized and consent is given
     if (gaInitialized && consentChecked) {
       trackPageView(location.pathname + location.search);
-      console.log("📊 Page view tracked:", location.pathname);
     }
   }, [location, gaInitialized, consentChecked]);
 
-  // ============================================
-  // HANDLE CONSENT ACCEPTANCE
-  // ============================================
   const handleConsentAccept = () => {
     localStorage.setItem("userConsent", "accepted");
     
-    // Initialize GA after consent
     if (!gaInitialized) {
       const initialized = initGA();
       if (initialized) {
         setGaInitialized(true);
-        console.log("✅ GA initialized after consent");
-        
-        // Track current page immediately after initialization
         trackPageView(location.pathname + location.search);
       }
     }
@@ -77,7 +62,6 @@ function App() {
 
   return (
     <>
-      {/* Cookie Consent Banner */}
       <ScrollToTop />
       <CookieBanner onAccept={handleConsentAccept} />
 
@@ -89,23 +73,28 @@ function App() {
         <Route path="/tournaments/:category" element={<Tournament />} />
         <Route path="/policy" element={<PrivacyPolicyPage />} />
         
-        {/* Auth Routes */}
-        <Route path="/auth" element={<AdminAuth />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signUp" element={<RegistrationPage />} />
+        {/* Auth Routes (redirect to dashboard if already logged in) */}
+        <Route path="/auth" element={<PublicOnlyRoute><AdminAuth /></PublicOnlyRoute>} />
+        <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+        <Route path="/signUp" element={<PublicOnlyRoute><RegistrationPage /></PublicOnlyRoute>} />
 
-      <Route path="/panel" element={<DashboardAdmin />}>
-  <Route index element={<DashboardPage />} />
+        {/* Protected Admin Routes */}
+        <Route 
+          path="/panel" 
+          element={
+            <PrivateRoute requiredRole="admin">
+              <DashboardAdmin />
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<DashboardPage />} />
+          <Route path="organizors">
+            <Route index element={<OrganizorsPage />} />
+            <Route path="add-organizor" element={<AddOrganizorForm />} />
+          </Route>
+        </Route>
 
-  <Route path="organizors">
-    <Route index element={<OrganizorsPage />} />
-    <Route path="add-organizor" element={<AddOrganizorForm />} />
-  </Route>
-
-</Route>
-
-
-        {/* 404 Not Found */}
+        {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
