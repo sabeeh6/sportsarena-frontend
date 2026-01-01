@@ -2,12 +2,16 @@ import React from "react";
 import { motion as Motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
-export default function Header({ title, description }) {
+export default function Header({ title, description , button }) {
   return (
     <header className="relative w-full bg-slate-950 text-white py-16 px-6  pt-48 overflow-hidden">
       {/* Gradient Blur Glow */}
       <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 opacity-10 blur-3xl"></div>
-
+        <div className="max-w-7xl mx-auto text-center">
+         <div className="inline-block mb-6 px-6 py-2 bg-orange-500/10 border border-orange-500/20 rounded-full animate-bounce-slow">
+            <span className="text-orange-500 font-bold text-sm tracking-wider">{button}</span>
+          </div>
+        </div>
       <Motion.div
         className="max-w-4xl mx-auto text-center relative z-10"
         initial={{ opacity: 0, y: 40 }}
@@ -16,7 +20,7 @@ export default function Header({ title, description }) {
       >
         {/* Title Section */}
         <Motion.div
-          className="flex justify-center items-center gap-2 mb-4"
+          className="flex justify-center items-center gap-2 mb-5"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.7, ease: "easeOut" }}
@@ -81,6 +85,26 @@ export default function Header({ title, description }) {
           </svg>
         </Motion.div>
       </Motion.div>
+       <style>{`
+        .animate-in {
+          opacity: 1 !important;
+          transform: translateX(0) !important;
+        }
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 3s infinite;
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
     </header>
   );
 }

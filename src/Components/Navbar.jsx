@@ -18,8 +18,10 @@ export default function Header() {
 
   const navLinks = [
     { name: "Home", to: "/" },
+    { name: "About", to: "/about" },
     { name: "Tournaments", to: "/tournaments" },
-    { name: "Apply", to: "/apply" },
+    // { name: "Apply", to: "/apply" },
+    { name: "Contact Us", to: "/contact" },
   ];
 
   // Framer Motion Variants

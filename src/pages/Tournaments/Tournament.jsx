@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { useParams } from "react-router-dom";
 import Navbar from "../../Components/Navbar";
 import Header from "../../Components/Header";
@@ -71,27 +71,27 @@ export default function Tournament() {
       <Header
         title={category ? getCategoryTitle() : "Tournaments"}
         description="Step into the arena of champions — where legends are forged, glory is earned, and every match burns with energy."
-      />
+     button={"ENJOY OUR TOURNAMENTS"} />
 
       {/* Animated Tournament Section */}
-      <motion.section
+      <Motion.section
         className="py-20 px-6 max-w-7xl mx-auto"
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
       >
-        <motion.h2
+        <Motion.h2
           className="text-center text-3xl md:text-4xl font-bold mb-12 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
           {getCategoryTitle()}
-        </motion.h2>
+        </Motion.h2>
 
         {/* Loading State */}
         {loading && (
-          <motion.div
+          <Motion.div
             className="flex justify-center items-center py-20"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -100,12 +100,12 @@ export default function Tournament() {
               <div className="w-16 h-16 border-4 border-orange-500/30 rounded-full"></div>
               <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
             </div>
-          </motion.div>
+          </Motion.div>
         )}
 
         {/* Error State */}
         {error && !loading && (
-          <motion.div
+          <Motion.div
             className="text-center py-20"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -130,22 +130,22 @@ export default function Tournament() {
               </h3>
               <p className="text-gray-400">{error}</p>
               {category && (
-                <motion.a
+                <Motion.a
                   href="/tournaments"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="inline-block mt-6 px-6 py-3 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 rounded-lg font-semibold hover:shadow-lg transition-all"
                 >
                   View All Tournaments
-                </motion.a>
+                </Motion.a>
               )}
             </div>
-          </motion.div>
+          </Motion.div>
         )}
 
         {/* Tournaments Grid */}
         {!loading && !error && tournaments.length > 0 && (
-          <motion.div
+          <Motion.div
             className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
             initial="hidden"
             animate="visible"
@@ -158,7 +158,7 @@ export default function Tournament() {
             }}
           >
             {tournaments.map((t, i) => (
-              <motion.div
+              <Motion.div
                 key={t._id || i}
                 variants={{
                   hidden: { opacity: 0, y: 30 },
@@ -167,22 +167,22 @@ export default function Tournament() {
                 transition={{ duration: 0.6 }}
               >
                 <TournamentCard {...t} />
-              </motion.div>
+              </Motion.div>
             ))}
-          </motion.div>
+          </Motion.div>
         )}
 
         {/* Empty State (no error but no tournaments) */}
         {!loading && !error && tournaments.length === 0 && (
-          <motion.div
+          <Motion.div
             className="text-center py-20"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
             <p className="text-gray-400 text-lg">No tournaments available at the moment.</p>
-          </motion.div>
+          </Motion.div>
         )}
-      </motion.section>
+      </Motion.section>
       
       <Footer />
     </div>

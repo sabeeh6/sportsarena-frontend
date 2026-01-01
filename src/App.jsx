@@ -17,6 +17,8 @@ import { DashboardPage } from "./pages/admin/adminDashboard.jsx";
 import { OrganizorsPage } from "./pages/admin/organizor.jsx";
 import { PrivateRoute } from "./components/PrivateRoute.jsx";
 import { PublicOnlyRoute } from "./components/PublicOnlyRoute.jsx";
+import AboutPage from "./pages/Home/about.jsx";
+import ContactUs from "./pages/Home/contact.jsx";
 
 function App() {
   const location = useLocation();
@@ -70,6 +72,8 @@ function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/apply" element={<TournamentApplicationForm />} />
         <Route path="/tournaments" element={<Tournament />} />
+        <Route path="/about" element={<AboutPage />} />
+        // <Route path="/contact" element={<ContactUs />} />
         <Route path="/tournaments/:category" element={<Tournament />} />
         <Route path="/policy" element={<PrivacyPolicyPage />} />
         
