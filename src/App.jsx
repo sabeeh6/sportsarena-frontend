@@ -19,6 +19,7 @@ import { PrivateRoute } from "./components/PrivateRoute.jsx";
 import { PublicOnlyRoute } from "./components/PublicOnlyRoute.jsx";
 import AboutPage from "./pages/Home/about.jsx";
 import ContactUs from "./pages/Home/contact.jsx";
+import { OrganizorPanel } from "./pages/organizor/organizorPanel.jsx";
 
 function App() {
   const location = useLocation();
@@ -97,6 +98,9 @@ function App() {
             <Route path="add-organizor" element={<AddOrganizorForm />} />
           </Route>
         </Route>
+
+        {/* Organizor Panel */}
+        <Route path="/Organizor-panel" element={<OrganizorPanel/>} />
 
         {/* 404 */}
         <Route path="*" element={<NotFound />} />

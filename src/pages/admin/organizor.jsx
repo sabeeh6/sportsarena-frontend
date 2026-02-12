@@ -11,6 +11,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
+import api from "../../api/api.js";
 
 export const OrganizorsPage = () => {
   const [organizors, setOrganizors] = useState([]);
@@ -25,12 +26,18 @@ export const OrganizorsPage = () => {
   const fetchOrganizors = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `http://localhost:3009/api/admin/get-all-organizor`
+      const response = await api.get(
+        `/admin/get-all-organizor` ,{
+          method:'GET',
+          withCredentials: true
+        }
       );
-      const data = await response.json();
+     
+  const { data } = response;   // backend ka pura object
+  console.log("Full Response:", response);
+  console.log("Backend Data:", data);
 
-      if (response.ok) {
+  if (response.status === 200 && data.success) {
         if (data.data && data.data.length > 0) {
           setOrganizors(data.data);
           setTotalPages(Math.ceil(data.total / itemsPerPage) || 1);
@@ -76,6 +83,7 @@ export const OrganizorsPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include"
       });
       const data = await response.json();
 
@@ -102,34 +110,34 @@ export const OrganizorsPage = () => {
   };
 
   // Delete organizer (if you have delete API)
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this organizer?")) {
-      return;
-    }
+  // const handleDelete = async (id) => {
+  //   if (!window.confirm("Are you sure you want to delete this organizer?")) {
+  //     return;
+  //   }
 
-    setActionLoading(id);
-    try {
-      const response = await fetch(
-        `http://localhost:3009/api/admin/delete-organizor/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
-      const data = await response.json();
+  //   setActionLoading(id);
+  //   try {
+  //     const response = await fetch(
+  //       `http://localhost:3009/api/admin/delete-organizor/${id}`,
+  //       {
+  //         method: "DELETE",
+  //       }
+  //     );
+  //     const data = await response.json();
 
-      if (response.ok) {
-        toast.success(data.message || "Organizer deleted successfully");
-        fetchOrganizors(currentPage);
-      } else {
-        toast.error(data.message || "Failed to delete organizer");
-      }
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast.error("Network error. Please try again.");
-    } finally {
-      setActionLoading(null);
-    }
-  };
+  //     if (response.ok) {
+  //       toast.success(data.message || "Organizer deleted successfully");
+  //       fetchOrganizors(currentPage);
+  //     } else {
+  //       toast.error(data.message || "Failed to delete organizer");
+  //     }
+  //   } catch (error) {
+  //     console.error("Delete error:", error);
+  //     toast.error("Network error. Please try again.");
+  //   } finally {
+  //     setActionLoading(null);
+  //   }
+  // };
 
   // Pagination handlers
   const handlePreviousPage = () => {

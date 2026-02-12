@@ -65,7 +65,7 @@ const SportsLoginPage = () => {
     try {
       setLoading(true);
 
-      const response = await api.post("http://localhost:3009/api/auth/login-user", {
+      const response = await api.post("/auth/login-user", {
         email: email.trim().toLowerCase(),
         password
       });

@@ -17,6 +17,7 @@ import {
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
+import api from '../../api/api';
 
 
 const API_URL = 'http://localhost:5000/api';
@@ -180,9 +181,9 @@ export default function RegistrationPage() {
         zipcode: Number(formData.zipcode),
       };
 
-      const response = await fetch(`http://localhost:3009/api/auth/create-user`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await api.post(`/auth/create-user`, {
+        // method: 'POST',
+        // headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
