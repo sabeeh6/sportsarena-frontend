@@ -24,3 +24,5 @@ cypress
 *.sw?
 *.env
 *cypress.config.js
+*package-lock.json
+*package.json

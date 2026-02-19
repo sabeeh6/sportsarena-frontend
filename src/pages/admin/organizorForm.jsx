@@ -3,6 +3,7 @@ import { motion as Motion } from "framer-motion";
 import { User, Mail, Phone, MapPin, Lock, Loader2, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import api from "../../api/api";
 import { toast, Toaster } from "react-hot-toast";
 
 export default function AddOrganizorForm() {
@@ -122,15 +123,9 @@ export default function AddOrganizorForm() {
         role: "organizor",
       };
 
-      const response = await axios.post(
-        "http://localhost:3009/api/admin/add-organizor",
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          timeout: 10000,
-        }
+      const response = await api.post(
+        "/admin/add-organizor",
+        payload
       );
 
       // Success response
@@ -172,10 +167,10 @@ export default function AddOrganizorForm() {
       if (error.response) {
         // Backend returned an error response
         const backendData = error.response.data;
-        
+
         // Extract error message
         let errorMessage = "Failed to add organizor";
-        
+
         if (typeof backendData === 'string') {
           errorMessage = backendData;
         } else if (backendData?.message) {
@@ -199,7 +194,7 @@ export default function AddOrganizorForm() {
         // Handle field-specific errors from backend (ZOD validation errors)
         if (backendData?.errors) {
           const fieldErrors = {};
-          
+
           // Check if it's an array (common ZOD format)
           if (Array.isArray(backendData.errors)) {
             backendData.errors.forEach((err) => {
@@ -208,25 +203,25 @@ export default function AddOrganizorForm() {
                 fieldErrors[fieldName] = err.message;
               }
             });
-          } 
+          }
           // Check if it's an object
           else if (typeof backendData.errors === 'object') {
             Object.keys(backendData.errors).forEach((key) => {
               const errorValue = backendData.errors[key];
-              
+
               // Handle different error formats
               if (typeof errorValue === 'string') {
                 fieldErrors[key] = errorValue;
               } else if (errorValue?.message && typeof errorValue.message === 'string') {
                 fieldErrors[key] = errorValue.message;
               } else if (Array.isArray(errorValue) && errorValue.length > 0) {
-                fieldErrors[key] = typeof errorValue[0] === 'string' 
-                  ? errorValue[0] 
+                fieldErrors[key] = typeof errorValue[0] === 'string'
+                  ? errorValue[0]
                   : errorValue[0]?.message || 'Invalid value';
               }
             });
           }
-          
+
           // Only set errors if we successfully extracted string messages
           if (Object.keys(fieldErrors).length > 0) {
             setErrors(fieldErrors);
@@ -335,9 +330,8 @@ export default function AddOrganizorForm() {
                     onChange={handleChange}
                     placeholder="Enter full name"
                     disabled={loading}
-                    className={`w-full bg-[#0a0f1c]/50 border ${
-                      errors.name ? "border-red-500" : "border-gray-700"
-                    } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`w-full bg-[#0a0f1c]/50 border ${errors.name ? "border-red-500" : "border-gray-700"
+                      } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
                   />
                 </div>
                 {errors.name && (
@@ -368,9 +362,8 @@ export default function AddOrganizorForm() {
                     onChange={handleChange}
                     placeholder="email@example.com"
                     disabled={loading}
-                    className={`w-full bg-[#0a0f1c]/50 border ${
-                      errors.email ? "border-red-500" : "border-gray-700"
-                    } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`w-full bg-[#0a0f1c]/50 border ${errors.email ? "border-red-500" : "border-gray-700"
+                      } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
                   />
                 </div>
                 {errors.email && (
@@ -401,9 +394,8 @@ export default function AddOrganizorForm() {
                     onChange={handleChange}
                     placeholder="+92 300 1234567"
                     disabled={loading}
-                    className={`w-full bg-[#0a0f1c]/50 border ${
-                      errors.contact ? "border-red-500" : "border-gray-700"
-                    } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`w-full bg-[#0a0f1c]/50 border ${errors.contact ? "border-red-500" : "border-gray-700"
+                      } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
                   />
                 </div>
                 {errors.contact && (
@@ -434,9 +426,8 @@ export default function AddOrganizorForm() {
                     placeholder="Enter complete street address"
                     rows="2"
                     disabled={loading}
-                    className={`w-full bg-[#0a0f1c]/50 border ${
-                      errors.streetAddress ? "border-red-500" : "border-gray-700"
-                    } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition resize-none disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`w-full bg-[#0a0f1c]/50 border ${errors.streetAddress ? "border-red-500" : "border-gray-700"
+                      } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition resize-none disabled:opacity-50 disabled:cursor-not-allowed`}
                   />
                 </div>
                 {errors.streetAddress && (
@@ -462,9 +453,8 @@ export default function AddOrganizorForm() {
                   onChange={handleChange}
                   placeholder="Enter state"
                   disabled={loading}
-                  className={`w-full bg-[#0a0f1c]/50 border ${
-                    errors.state ? "border-red-500" : "border-gray-700"
-                  } rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`w-full bg-[#0a0f1c]/50 border ${errors.state ? "border-red-500" : "border-gray-700"
+                    } rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
                 />
                 {errors.state && (
                   <Motion.p
@@ -489,9 +479,8 @@ export default function AddOrganizorForm() {
                   onChange={handleChange}
                   placeholder="Enter zip code"
                   disabled={loading}
-                  className={`w-full bg-[#0a0f1c]/50 border ${
-                    errors.zipCode ? "border-red-500" : "border-gray-700"
-                  } rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`w-full bg-[#0a0f1c]/50 border ${errors.zipCode ? "border-red-500" : "border-gray-700"
+                    } rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
                 />
                 {errors.zipCode && (
                   <Motion.p
@@ -521,9 +510,8 @@ export default function AddOrganizorForm() {
                     onChange={handleChange}
                     placeholder="Must contain uppercase, lowercase & number"
                     disabled={loading}
-                    className={`w-full bg-[#0a0f1c]/50 border ${
-                      errors.password ? "border-red-500" : "border-gray-700"
-                    } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`w-full bg-[#0a0f1c]/50 border ${errors.password ? "border-red-500" : "border-gray-700"
+                      } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
                   />
                 </div>
                 {errors.password && (

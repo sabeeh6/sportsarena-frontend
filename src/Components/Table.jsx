@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 
 // ============= REUSABLE TABLE COMPONENT =============
-export const DataTable = ({ columns, data,  }) => {
-    // onEdit, onDelete, onToggleStatus
+export const DataTable = ({ columns, data, currentPage, totalPages, onPageChange }) => {
+  // onEdit, onDelete, onToggleStatus
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredData = data.filter((row) =>
@@ -107,7 +107,7 @@ export const DataTable = ({ columns, data,  }) => {
                 >
                   {columns.map((col, colIdx) => (
                     <td key={colIdx} className="px-6 py-4 text-gray-200">
-                      {col.render ? col.render(row) : row[col.accessor]}
+                      {col.render ? col.render(row, rowIdx) : row[col.accessor]}
                     </td>
                   ))}
                 </Motion.tr>
@@ -120,19 +120,36 @@ export const DataTable = ({ columns, data,  }) => {
       {/* Table Footer */}
       <div className="flex items-center justify-between text-sm text-gray-400">
         <p>
-          Showing {filteredData.length} of {data.length} entries
+          Showing {filteredData.length} entries
         </p>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 bg-[#1a2235]/50 border border-orange-500/20 rounded-lg hover:border-orange-500/50 transition">
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1.5 bg-[#1a2235]/50 border border-orange-500/20 rounded-lg hover:border-orange-500/50 transition disabled:opacity-30 disabled:cursor-not-allowed"
+          >
             Previous
           </button>
-          <button className="px-3 py-1.5 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg text-white">
-            1
-          </button>
-          <button className="px-3 py-1.5 bg-[#1a2235]/50 border border-orange-500/20 rounded-lg hover:border-orange-500/50 transition">
-            2
-          </button>
-          <button className="px-3 py-1.5 bg-[#1a2235]/50 border border-orange-500/20 rounded-lg hover:border-orange-500/50 transition">
+
+          {/* Generate page numbers */}
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => onPageChange(i + 1)}
+              className={`px-3 py-1.5 rounded-lg transition ${currentPage === i + 1
+                ? "bg-gradient-to-r from-orange-500 to-red-600 text-white"
+                : "bg-[#1a2235]/50 border border-orange-500/20 text-gray-400 hover:border-orange-500/50"
+                }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1.5 bg-[#1a2235]/50 border border-orange-500/20 rounded-lg hover:border-orange-500/50 transition disabled:opacity-30 disabled:cursor-not-allowed"
+          >
             Next
           </button>
         </div>

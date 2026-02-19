@@ -7,13 +7,13 @@
  */
 export const getAuthToken = () => {
   try {
-    console.log("Cookie" , document.cookie)
+    console.log("Cookie", document.cookie)
     const token = document.cookie
       .split('; ')
-      .find(row => row.startsWith('authToken='))
+      .find(row => row.startsWith('authToken=') || row.startsWith('accessToken='))
       ?.split('=')[1];
-    console.log(token  , "TOKAN");
-    
+    console.log(token, "TOKAN");
+
     return token || null;
   } catch (error) {
     console.error('Error getting auth token:', error);
@@ -27,7 +27,7 @@ export const getAuthToken = () => {
 export const isAuthenticated = () => {
   const token = getAuthToken();
   const user = getUserData();
-  
+
   // Both token and user data must exist
   return !!(token && user && user.id);
 };
@@ -37,10 +37,10 @@ export const isAuthenticated = () => {
  */
 export const verifyToken = async () => {
   try {
-    const token = getAuthToken(); 
-    console.log("Aut token" ,  token);
-    
-    console.log("Token" , token)
+    const token = getAuthToken();
+    console.log("Aut token", token);
+
+    console.log("Token", token)
     if (!token) {
       console.warn('No token found for verification');
       return false;
@@ -57,17 +57,17 @@ export const verifyToken = async () => {
 
     if (!response.ok) {
       console.warn('Token verification failed:', response.status);
-      
+
       // If unauthorized, clear auth data
       if (response.status === 401 || response.status === 403) {
         clearAuthData();
       }
-      
+
       return false;
     }
 
     const data = await response.json();
-    
+
     // Validate response structure
     if (data && data.success) {
       // Optionally update user data if provided
@@ -76,14 +76,14 @@ export const verifyToken = async () => {
         const updatedUser = { ...existingUser, ...data.user };
         localStorage.setItem('user', JSON.stringify(updatedUser));
       }
-      
+
       return true;
     }
-    
+
     return false;
   } catch (error) {
     console.error('Token verification error:', error);
-    
+
     // Network errors don't necessarily mean invalid token
     // So we don't clear auth data here
     return false;
@@ -96,19 +96,19 @@ export const verifyToken = async () => {
 export const getUserData = () => {
   try {
     const userStr = localStorage.getItem('user');
-    
+
     if (!userStr) {
       return null;
     }
-    
+
     const user = JSON.parse(userStr);
-    
+
     // Validate user object has required fields
     if (!user.id || !user.email) {
       console.warn('Invalid user data structure');
       return null;
     }
-    
+
     return user;
   } catch (error) {
     console.error('Error parsing user data:', error);
@@ -129,12 +129,12 @@ export const getUserRole = () => {
  */
 export const hasRole = (requiredRole) => {
   const userRole = getUserRole();
-  
+
   // Admin has access to everything
   if (userRole === 'admin') {
     return true;
   }
-  
+
   return userRole === requiredRole;
 };
 
@@ -145,12 +145,12 @@ export const clearAuthData = () => {
   try {
     // Clear cookie
     document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict';
-    
+
     // Clear localStorage
     localStorage.removeItem('user');
     localStorage.removeItem('lastLogin');
     localStorage.removeItem('authToken'); // In case it was stored here too
-    
+
     console.log('✅ Auth data cleared');
   } catch (error) {
     console.error('Error clearing auth data:', error);
@@ -162,7 +162,7 @@ export const clearAuthData = () => {
  */
 export const logout = (redirectPath = '/login') => {
   clearAuthData();
-  
+
   // Use window.location for full page reload to ensure all state is cleared
   window.location.href = redirectPath;
 };
@@ -173,7 +173,7 @@ export const logout = (redirectPath = '/login') => {
 export const refreshAuthToken = async () => {
   try {
     const token = getAuthToken();
-    
+
     if (!token) {
       return false;
     }
@@ -192,13 +192,13 @@ export const refreshAuthToken = async () => {
     }
 
     const data = await response.json();
-    
+
     if (data.token) {
       // Update cookie with new token
       document.cookie = `authToken=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Strict; Secure`;
       return true;
     }
-    
+
     return false;
   } catch (error) {
     console.error('Token refresh error:', error);
@@ -213,19 +213,19 @@ export const refreshAuthToken = async () => {
 export const isTokenExpired = () => {
   try {
     const token = getAuthToken();
-    
+
     if (!token) {
       return true;
     }
 
     // Decode JWT (without verification - just for expiry check)
     const payload = JSON.parse(atob(token.split('.')[1]));
-    
+
     if (!payload.exp) {
       // If no expiry, assume it's valid
       return false;
     }
-    
+
     // Check if expired (exp is in seconds, Date.now() is in milliseconds)
     return payload.exp * 1000 < Date.now();
   } catch (error) {
@@ -241,20 +241,20 @@ export const isTokenExpired = () => {
 export const getTokenTimeRemaining = () => {
   try {
     const token = getAuthToken();
-    
+
     if (!token) {
       return 0;
     }
 
     const payload = JSON.parse(atob(token.split('.')[1]));
-    
+
     if (!payload.exp) {
       return Infinity; // No expiry
     }
-    
+
     const expiryTime = payload.exp * 1000;
     const now = Date.now();
-    
+
     return Math.max(0, expiryTime - now);
   } catch (error) {
     console.error('Error getting token time remaining:', error);
@@ -275,11 +275,11 @@ export const setupTokenRefresh = () => {
   // Refresh token every 6 hours (adjust based on your token expiry)
   window.tokenRefreshInterval = setInterval(async () => {
     const timeRemaining = getTokenTimeRemaining();
-    
+
     // Refresh if less than 1 hour remaining
     if (timeRemaining < 60 * 60 * 1000) {
       const refreshed = await refreshAuthToken();
-      
+
       if (!refreshed) {
         console.warn('Token refresh failed, logging out');
         logout();

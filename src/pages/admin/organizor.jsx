@@ -27,20 +27,22 @@ export const OrganizorsPage = () => {
     setLoading(true);
     try {
       const response = await api.get(
-        `/admin/get-all-organizor` ,{
-          method:'GET',
-          withCredentials: true
+        `/admin/get-all-organizor`, {
+        params: {
+          page,
+          limit: itemsPerPage
         }
+      }
       );
-     
-  const { data } = response;   // backend ka pura object
-  console.log("Full Response:", response);
-  console.log("Backend Data:", data);
 
-  if (response.status === 200 && data.success) {
-        if (data.data && data.data.length > 0) {
+      const { data } = response;   // backend ka pura object
+      console.log("Full Response:", response);
+      console.log("Backend Data:", data);
+
+      if (response.status === 200 && data.success) {
+        if (data.data) {
           setOrganizors(data.data);
-          setTotalPages(Math.ceil(data.total / itemsPerPage) || 1);
+          setTotalPages(data.totalPages || 1);
           if (data.message) {
             toast.success(data.message);
           }
@@ -74,18 +76,12 @@ export const OrganizorsPage = () => {
     setActionLoading(id);
     const endpoint =
       currentStatus === "active"
-        ? `http://localhost:3009/api/admin/inactive/${id}`
-        : `http://localhost:3009/api/admin/active/${id}`;
+        ? `/admin/inactivate-organizor/${id}`
+        : `/admin/activate-organizor/${id}`;
 
     try {
-      const response = await fetch(endpoint, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include"
-      });
-      const data = await response.json();
+      const response = await api.put(endpoint);
+      const { data } = response;
 
       if (response.ok) {
         toast.success(
@@ -109,35 +105,29 @@ export const OrganizorsPage = () => {
     navigate(`/panel/organizors/add-organizor`, { state: { organizor } });
   };
 
-  // Delete organizer (if you have delete API)
-  // const handleDelete = async (id) => {
-  //   if (!window.confirm("Are you sure you want to delete this organizer?")) {
-  //     return;
-  //   }
+  // Delete organizer
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this organizer?")) {
+      return;
+    }
 
-  //   setActionLoading(id);
-  //   try {
-  //     const response = await fetch(
-  //       `http://localhost:3009/api/admin/delete-organizor/${id}`,
-  //       {
-  //         method: "DELETE",
-  //       }
-  //     );
-  //     const data = await response.json();
+    setActionLoading(id);
+    try {
+      const response = await api.delete(`/admin/${id}`);
 
-  //     if (response.ok) {
-  //       toast.success(data.message || "Organizer deleted successfully");
-  //       fetchOrganizors(currentPage);
-  //     } else {
-  //       toast.error(data.message || "Failed to delete organizer");
-  //     }
-  //   } catch (error) {
-  //     console.error("Delete error:", error);
-  //     toast.error("Network error. Please try again.");
-  //   } finally {
-  //     setActionLoading(null);
-  //   }
-  // };
+      if (response.status === 200) {
+        toast.success(response.data.message || "Organizer deleted successfully");
+        fetchOrganizors(currentPage);
+      } else {
+        toast.error(response.data.message || "Failed to delete organizer");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error(error.response?.data?.message || "Network error. Please try again.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   // Pagination handlers
   const handlePreviousPage = () => {
@@ -154,6 +144,15 @@ export const OrganizorsPage = () => {
 
   const columns = [
     {
+      header: "S.No",
+      accessor: "index",
+      render: (_, index) => (
+        <span className="text-gray-400 font-medium">
+          {(currentPage - 1) * itemsPerPage + index + 1}
+        </span>
+      ),
+    },
+    {
       header: "Name",
       accessor: "name",
       render: (row) => (
@@ -168,31 +167,21 @@ export const OrganizorsPage = () => {
         </div>
       ),
     },
-    { header: "Phone", accessor: "phone" },
-    { header: "Events", accessor: "events" },
+    { header: "Phone", accessor: "number" },
+    { header: "Email", accessor: "email" },
     {
       header: "Status",
       accessor: "status",
       render: (row) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            row.status === "active"
-              ? "bg-green-500/20 text-green-400 border border-green-500/30"
-              : "bg-red-500/20 text-red-400 border border-red-500/30"
-          }`}
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${row.status === "active"
+            ? "bg-green-500/20 text-green-400 border border-green-500/30"
+            : "bg-red-500/20 text-red-400 border border-red-500/30"
+            }`}
         >
           {row.status?.charAt(0)?.toUpperCase() + row.status?.slice(1) || "Unknown"}
         </span>
       ),
-    },
-    { 
-      header: "Join Date", 
-      accessor: "joinDate",
-      render: (row) => (
-        <span className="text-gray-300">
-          {row.joinDate ? new Date(row.joinDate).toLocaleDateString() : "N/A"}
-        </span>
-      )
     },
     {
       header: "Actions",
@@ -204,11 +193,10 @@ export const OrganizorsPage = () => {
             whileTap={{ scale: 0.9 }}
             onClick={() => toggleStatus(row.id || row._id, row.status)}
             disabled={actionLoading === (row.id || row._id)}
-            className={`p-2 rounded-lg transition ${
-              row.status === "active"
-                ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`p-2 rounded-lg transition ${row.status === "active"
+              ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+              : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {actionLoading === (row.id || row._id) ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -226,7 +214,7 @@ export const OrganizorsPage = () => {
           >
             <Edit className="w-4 h-4" />
           </Motion.button>
-          {/* <Motion.button
+          <Motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => handleDelete(row.id || row._id)}
@@ -238,7 +226,7 @@ export const OrganizorsPage = () => {
             ) : (
               <Trash2 className="w-4 h-4" />
             )}
-          </Motion.button> */}
+          </Motion.button>
         </div>
       ),
     },
@@ -322,38 +310,15 @@ export const OrganizorsPage = () => {
             </p>
           </div>
         ) : (
-          <>
-            <div className="overflow-x-auto">
-              <DataTable columns={columns} data={organizors} />
-            </div>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-between px-4 py-3 bg-gray-800/50 rounded-xl border border-gray-700">
-              <div className="text-sm text-gray-400">
-                Page {currentPage} of {totalPages}
-              </div>
-              <div className="flex gap-2">
-                <Motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handlePreviousPage}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </Motion.button>
-                <Motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleNextPage}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg hover:shadow-orange-500/50 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </Motion.button>
-              </div>
-            </div>
-          </>
+          <div className="overflow-x-auto">
+            <DataTable
+              columns={columns}
+              data={organizors}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         )}
       </div>
       <Outlet />
