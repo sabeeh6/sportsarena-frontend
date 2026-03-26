@@ -1,6 +1,7 @@
 // ============================================
 // AUTH HELPER FUNCTIONS
 // ============================================
+import api from '../api/api';
 
 /**
  * Get auth token from cookies
@@ -143,15 +144,25 @@ export const hasRole = (requiredRole) => {
  */
 export const clearAuthData = () => {
   try {
-    // Clear cookie
-    document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict';
+    // Clear cookies: match standard names and variety of attributes
+    const cookieNames = ['authToken', 'accessToken', 'user'];
+    
+    cookieNames.forEach(name => {
+      // Try multiple SameSite and Path combinations
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+    });
 
     // Clear localStorage
     localStorage.removeItem('user');
     localStorage.removeItem('lastLogin');
-    localStorage.removeItem('authToken'); // In case it was stored here too
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('authUser'); // Just in case from older code
 
-    console.log('✅ Auth data cleared');
+    console.log('✅ All auth data cleared');
   } catch (error) {
     console.error('Error clearing auth data:', error);
   }
@@ -160,11 +171,27 @@ export const clearAuthData = () => {
 /**
  * Logout user and redirect to login
  */
-export const logout = (redirectPath = '/login') => {
-  clearAuthData();
-
-  // Use window.location for full page reload to ensure all state is cleared
-  window.location.href = redirectPath;
+export const logout = async (redirectPath = '/login') => {
+  console.log('🔄 Logout initiated...');
+  try {
+    // Call logout API
+    // Note: We don't necessarily need to await this if we want speed,
+    // but industry standard is to wait for session invalidation.
+    await api.post('/auth/log-out');
+    console.log('✅ Logout API call successful');
+  } catch (error) {
+    console.error('❌ Logout API call failed:', error);
+    // We continue with local cleanup anyway
+  } finally {
+    // ALWAYS clear local data and redirect
+    clearAuthData();
+    console.log('🚀 Redirecting to:', redirectPath);
+    
+    // Small timeout to ensure cookies are flushed
+    setTimeout(() => {
+      window.location.href = redirectPath;
+    }, 100);
+  }
 };
 
 /**

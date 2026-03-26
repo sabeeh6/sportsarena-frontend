@@ -11,8 +11,8 @@ export default function AddOrganizorForm() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    contact: "",
-    streetAddress: "",
+    number: "",
+    address: "",
     state: "",
     zipCode: "",
     password: "",
@@ -53,18 +53,18 @@ export default function AddOrganizorForm() {
       newErrors.email = "Please enter a valid email address";
     }
 
-    // Contact validation
-    if (!formData.contact.trim()) {
-      newErrors.contact = "Contact number is required";
-    } else if (!/^\+?[\d\s-]{10,}$/.test(formData.contact)) {
-      newErrors.contact = "Please enter a valid contact number";
+    // number validation
+    if (!formData.number.trim()) {
+      newErrors.number = "number number is required";
+    } else if (!/^\+?[\d\s-]{10,}$/.test(formData.number)) {
+      newErrors.number = "Please enter a valid number number";
     }
 
     // Street Address validation
-    if (!formData.streetAddress.trim()) {
-      newErrors.streetAddress = "Street address is required";
-    } else if (formData.streetAddress.trim().length < 10) {
-      newErrors.streetAddress = "Please enter a complete street address";
+    if (!formData.address.trim()) {
+      newErrors.address = "Street address is required";
+    } else if (formData.address.trim().length < 10) {
+      newErrors.address = "Please enter a complete street address";
     }
 
     // State validation
@@ -115,8 +115,8 @@ export default function AddOrganizorForm() {
       const payload = {
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
-        contact: formData.contact.trim(),
-        streetAddress: formData.streetAddress.trim(),
+        number: formData.number.trim(),
+        address: formData.address.trim(),
         state: formData.state.trim(),
         zipCode: formData.zipCode.trim(),
         password: formData.password,
@@ -128,6 +128,17 @@ export default function AddOrganizorForm() {
         payload
       );
 
+       // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          number: "",
+          address: "",
+          state: "",
+          zipCode: "",
+          password: "",
+        });
+        
       // Success response
       if (response.data) {
         toast.success(
@@ -143,17 +154,6 @@ export default function AddOrganizorForm() {
             icon: "✅",
           }
         );
-
-        // Reset form
-        setFormData({
-          name: "",
-          email: "",
-          contact: "",
-          streetAddress: "",
-          state: "",
-          zipCode: "",
-          password: "",
-        });
 
         // Navigate back after 1.5 seconds
         setTimeout(() => {
@@ -377,10 +377,10 @@ export default function AddOrganizorForm() {
                 )}
               </div>
 
-              {/* Contact */}
+              {/* number */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Contact Number *
+                  number Number *
                 </label>
                 <div className="relative">
                   <Phone
@@ -389,22 +389,22 @@ export default function AddOrganizorForm() {
                   />
                   <input
                     type="text"
-                    name="contact"
-                    value={formData.contact}
+                    name="number"
+                    value={formData.number}
                     onChange={handleChange}
                     placeholder="+92 300 1234567"
                     disabled={loading}
-                    className={`w-full bg-[#0a0f1c]/50 border ${errors.contact ? "border-red-500" : "border-gray-700"
+                    className={`w-full bg-[#0a0f1c]/50 border ${errors.number ? "border-red-500" : "border-gray-700"
                       } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
                   />
                 </div>
-                {errors.contact && (
+                {errors.number && (
                   <Motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-red-400 text-sm mt-1 flex items-center gap-1"
                   >
-                    <span>⚠️</span> {errors.contact}
+                    <span>⚠️</span> {errors.number}
                   </Motion.p>
                 )}
               </div>
@@ -420,23 +420,23 @@ export default function AddOrganizorForm() {
                     size={20}
                   />
                   <textarea
-                    name="streetAddress"
-                    value={formData.streetAddress}
+                    name="address"
+                    value={formData.address}
                     onChange={handleChange}
                     placeholder="Enter complete street address"
                     rows="2"
                     disabled={loading}
-                    className={`w-full bg-[#0a0f1c]/50 border ${errors.streetAddress ? "border-red-500" : "border-gray-700"
+                    className={`w-full bg-[#0a0f1c]/50 border ${errors.address ? "border-red-500" : "border-gray-700"
                       } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition resize-none disabled:opacity-50 disabled:cursor-not-allowed`}
                   />
                 </div>
-                {errors.streetAddress && (
+                {errors.address && (
                   <Motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-red-400 text-sm mt-1 flex items-center gap-1"
                   >
-                    <span>⚠️</span> {errors.streetAddress}
+                    <span>⚠️</span> {errors.address}
                   </Motion.p>
                 )}
               </div>

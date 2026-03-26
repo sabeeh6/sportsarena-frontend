@@ -247,7 +247,7 @@ const SportsLoginPage = () => {
               </div>
 
               {/* Social Login */}
-              <div className="space-y-3 mb-8">
+              {/* <div className="space-y-3 mb-8">
                 <button
                   type="button"
                   disabled={loading}
@@ -270,10 +270,10 @@ const SportsLoginPage = () => {
                   <Facebook className="w-6 h-6" fill="currentColor" />
                   <span>Continue with Facebook</span>
                 </button>
-              </div>
+              </div> */}
 
               {/* Divider */}
-              <div className="relative my-8">
+              {/* <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-white/10"></div>
                 </div>
@@ -282,7 +282,7 @@ const SportsLoginPage = () => {
                     Or sign in with email
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Login Form */}
               <form onSubmit={handleLogin} className="space-y-6">

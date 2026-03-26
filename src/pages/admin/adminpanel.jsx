@@ -7,6 +7,7 @@ import {
   LogOut,
   Menu,
 } from "lucide-react";
+import { logout } from "../../utils/auth";
 
 export default function DashboardAdmin() {
   const navigate = useNavigate();
@@ -104,7 +105,7 @@ export default function DashboardAdmin() {
         <Motion.button
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => navigate("/auth")}
+          onClick={() => logout("/login")}
           className="mx-3 mt-6 flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-all duration-300 border border-transparent hover:border-red-500/30"
         >
           <LogOut className="flex-shrink-0" size={22} />
@@ -165,7 +166,7 @@ export default function DashboardAdmin() {
         <Motion.button
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => navigate("/auth")}
+          onClick={() => logout("/auth")}
           className="mx-3 mt-6 flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-all duration-300 border border-transparent hover:border-red-500/30"
         >
           <LogOut className="flex-shrink-0" size={22} />
