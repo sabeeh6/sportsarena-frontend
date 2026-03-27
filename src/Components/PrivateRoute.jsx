@@ -4,11 +4,19 @@ import { Loader2, ShieldAlert } from 'lucide-react';
 import { getAuthToken, getUserData } from '../utils/auth';
 
 /**
- * PrivateRoute - Simple and reliable
+ * PrivateRoute — Protects routes that require authentication and a specific role.
+ *
+ * Strict role isolation:
+ *   - requiredRole="admin"    → only admin can access
+ *   - requiredRole="organizor" → only organizor can access
+ *   - no requiredRole         → any authenticated user can access
+ *
+ * Unauthorized users are redirected to their own dashboard (not login).
  */
 export const PrivateRoute = ({ children, requiredRole = null }) => {
   const [loading, setLoading] = useState(true);
   const [isValid, setIsValid] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -17,30 +25,28 @@ export const PrivateRoute = ({ children, requiredRole = null }) => {
         const token = getAuthToken();
         const user = getUserData();
 
-        console.log("PrivateRoute Check:");
-        console.log("Token:", token ? "✅ EXISTS" : "❌ MISSING");
-        console.log("User:", user ? "✅ EXISTS" : "❌ MISSING");
-
         // Both must exist
         if (!token || !user || !user.id) {
           setIsValid(false);
+          setHasAccess(false);
           setLoading(false);
           return;
         }
 
-        // Check role if required
+        setIsValid(true);
+
+        // Check role if required (strict — no blanket admin override)
         if (requiredRole) {
-          const hasAccess = user.role === 'admin' || user.role === requiredRole;
-          console.log("Role Check:", hasAccess ? "✅ PASSED" : "❌ FAILED");
-          setIsValid(hasAccess);
+          setHasAccess(user.role === requiredRole);
         } else {
-          setIsValid(true);
+          setHasAccess(true);
         }
 
         setLoading(false);
       } catch (error) {
         console.error('PrivateRoute Error:', error);
         setIsValid(false);
+        setHasAccess(false);
         setLoading(false);
       }
     };
@@ -48,6 +54,7 @@ export const PrivateRoute = ({ children, requiredRole = null }) => {
     checkAuth();
   }, [requiredRole, location.pathname]);
 
+  // Loading
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -59,11 +66,21 @@ export const PrivateRoute = ({ children, requiredRole = null }) => {
     );
   }
 
+  // Not authenticated at all → login
   if (!isValid) {
-    console.log("❌ Not authenticated, redirecting to login");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  console.log("✅ Authenticated, showing protected content");
+  // Authenticated but wrong role → redirect to their own dashboard
+  if (!hasAccess) {
+    const user = getUserData();
+    const redirectMap = {
+      admin: '/admin/dashboard',
+      organizor: '/organizer/dashboard',
+    };
+    const target = redirectMap[user?.role] || '/';
+    return <Navigate to={target} replace />;
+  }
+
   return children;
 };

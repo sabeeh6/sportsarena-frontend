@@ -68,7 +68,7 @@ export const OrganizorsPage = () => {
   }, [currentPage]);
 
   const handleClick = () => {
-    navigate("/panel/organizors/add-organizor");
+    navigate("/admin/organizors/add-organizor");
   };
 
   // Toggle organizer status (active/inactive)
@@ -102,7 +102,7 @@ export const OrganizorsPage = () => {
 
   // Navigate to edit page
   const handleEdit = (organizor) => {
-    navigate(`/panel/organizors/add-organizor`, { state: { organizor } });
+    navigate(`/admin/organizors/add-organizor`, { state: { organizor } });
   };
 
   // Delete organizer

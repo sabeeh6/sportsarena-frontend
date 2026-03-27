@@ -157,7 +157,7 @@ export default function AddOrganizorForm() {
 
         // Navigate back after 1.5 seconds
         setTimeout(() => {
-          navigate("/panel/organizors");
+          navigate("/admin/organizors");
         }, 1500);
       }
     } catch (error) {
@@ -266,10 +266,10 @@ export default function AddOrganizorForm() {
         "Are you sure you want to cancel? All unsaved data will be lost."
       );
       if (confirmCancel) {
-        navigate("/panel/organizors");
+        navigate("/admin/organizors");
       }
     } else {
-      navigate("/panel/organizors");
+      navigate("/admin/organizors");
     }
   };
 

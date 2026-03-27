@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Dashboard from "./pages/Home/Home.jsx";
 import Tournament from "./pages/Tournaments/Tournament.jsx";
@@ -19,7 +19,9 @@ import { PrivateRoute } from "./components/PrivateRoute.jsx";
 import { PublicOnlyRoute } from "./components/PublicOnlyRoute.jsx";
 import AboutPage from "./pages/Home/about.jsx";
 import ContactUs from "./pages/Home/contact.jsx";
-import { OrganizorPanel } from "./pages/organizor/organizorPanel.jsx";
+import OrganizerPanel from "./pages/organizer/OrganizerPanel.jsx";
+import OrganizerDashboard from "./pages/organizer/OrganizerDashboard.jsx";
+import OrganizerGrounds from "./pages/organizer/OrganizerGrounds.jsx";
 
 function App() {
   const location = useLocation();
@@ -74,7 +76,7 @@ function App() {
         <Route path="/apply" element={<TournamentApplicationForm />} />
         <Route path="/tournaments" element={<Tournament />} />
         <Route path="/about" element={<AboutPage />} />
-        // <Route path="/contact" element={<ContactUs />} />
+        {/* <Route path="/contact" element={<ContactUs />} /> */}
         <Route path="/tournaments/:category" element={<Tournament />} />
         <Route path="/policy" element={<PrivacyPolicyPage />} />
         
@@ -85,22 +87,34 @@ function App() {
 
         {/* Protected Admin Routes */}
         <Route 
-          path="/panel" 
+          path="/admin" 
           element={
             <PrivateRoute requiredRole="admin">
               <DashboardAdmin />
             </PrivateRoute>
           }
         >
-          <Route index element={<DashboardPage />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="organizors">
             <Route index element={<OrganizorsPage />} />
             <Route path="add-organizor" element={<AddOrganizorForm />} />
           </Route>
         </Route>
 
-        {/* Organizor Panel */}
-        <Route path="/Organizor-panel" element={<OrganizorPanel/>} />
+        {/* Protected Organizer Routes */}
+        <Route
+          path="/organizer"
+          element={
+            <PrivateRoute requiredRole="organizor">
+              <OrganizerPanel />
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<OrganizerDashboard />} />
+          <Route path="grounds" element={<OrganizerGrounds />} />
+        </Route>
 
         {/* 404 */}
         <Route path="*" element={<NotFound />} />

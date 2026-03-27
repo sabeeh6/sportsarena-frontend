@@ -106,7 +106,11 @@ const SportsLoginPage = () => {
       await new Promise(resolve => setTimeout(resolve, 200));
 
       // Navigate with window.location for full reload (ensures all components re-check auth)
-      const redirectPath = userInfo.role === 'admin' ? '/panel' : '/';
+      const redirectMap = {
+        admin: '/admin/dashboard',
+        organizor: '/organizer/dashboard',
+      };
+      const redirectPath = redirectMap[userInfo.role] || '/';
       window.location.href = redirectPath;
 
     } catch (err) {
