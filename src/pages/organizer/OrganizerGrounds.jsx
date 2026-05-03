@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion as Motion } from "framer-motion";
 import {
   Edit,
@@ -9,20 +9,51 @@ import {
   MapPin,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import api from "../../api/api";
 
-/**
- * OrganizerGrounds — Grounds management page for organizers.
- *
- * Uses placeholder data for now. When the backend endpoint is ready,
- * replace the static `groundsData` with an API call (same pattern as
- * the admin OrganizorsPage).
- */
 export default function OrganizerGrounds() {
-  const [grounds] = useState([
-    { _id: "1", name: "Model Town Ground", location: "Model Town, Lahore", sport: "Cricket", capacity: 500, status: "active" },
-    { _id: "2", name: "Lahore Sports Complex", location: "Gulberg, Lahore", sport: "Football", capacity: 1200, status: "active" },
-    { _id: "3", name: "DHA Sports Arena", location: "DHA Phase 5, Lahore", sport: "Basketball", capacity: 800, status: "inactive" },
-  ]);
+  const navigate = useNavigate();
+  const [grounds, setGrounds] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
+
+  const fetchGrounds = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get("/organizor/get-Grounds");
+      if (response.data && response.data.success) {
+        setGrounds(response.data.message.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching grounds:", error);
+      toast.error("Failed to fetch grounds");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGrounds();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this ground?")) return;
+    
+    setActionLoading(id);
+    try {
+      const response = await api.delete(`/organizor/del-Ground/${id}`);
+      if (response.data?.success) {
+        toast.success(response.data.message || "Ground deleted successfully");
+        fetchGrounds();
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error(error.response?.data?.message || "Failed to delete ground");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   return (
     <>
@@ -58,15 +89,18 @@ export default function OrganizerGrounds() {
           <Motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => toast.success("Add Ground form coming soon!")}
+            onClick={() => navigate("/organizer/grounds/add-ground")}
             className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-orange-500/50 transition w-full md:w-auto"
           >
             + Add Ground
           </Motion.button>
         </Motion.div>
 
-        {/* Grounds Table */}
-        {grounds.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
+          </div>
+        ) : grounds.length === 0 ? (
           <div className="text-center py-20">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800 mb-4">
               <MapPin className="w-8 h-8 text-gray-500" />
@@ -84,9 +118,9 @@ export default function OrganizerGrounds() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-gray-700/50">
-                  {["S.No", "Ground Name", "Location", "Sport", "Capacity", "Status", "Actions"].map(
+                  {["S.No", "Ground Name", "Location", "Type", "Price (₨)", "Status", "Actions"].map(
                     (h) => (
-                      <th key={h} className="py-4 px-4 text-gray-400 text-sm font-semibold uppercase tracking-wider">
+                      <th key={h} className="py-4 px-4 text-gray-400 text-sm font-semibold uppercase tracking-wider whitespace-nowrap">
                         {h}
                       </th>
                     )
@@ -105,24 +139,26 @@ export default function OrganizerGrounds() {
                     <td className="py-4 px-4 text-gray-400 font-medium">{idx + 1}</td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center font-bold text-white">
-                          {ground.name.charAt(0)}
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center font-bold text-white shrink-0">
+                          {ground.groundName?.charAt(0).toUpperCase() || "G"}
                         </div>
-                        <span className="font-semibold text-white">{ground.name}</span>
+                        <span className="font-semibold text-white whitespace-nowrap">{ground.groundName || "N/A"}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-4 text-gray-300">{ground.location}</td>
-                    <td className="py-4 px-4 text-gray-300">{ground.sport}</td>
-                    <td className="py-4 px-4 text-gray-300">{ground.capacity}</td>
+                    <td className="py-4 px-4 text-gray-300 min-w-[200px]">{ground.location}</td>
+                    <td className="py-4 px-4 text-gray-300">{ground.type}</td>
+                    <td className="py-4 px-4 text-gray-300 font-medium">₨ {ground.price}</td>
                     <td className="py-4 px-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          ground.status === "active"
+                        className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                          ground.status === "Avaliable" || ground.status === "active"
                             ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                            : ground.status === "Booked"
+                            ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                             : "bg-red-500/20 text-red-400 border border-red-500/30"
                         }`}
                       >
-                        {ground.status.charAt(0).toUpperCase() + ground.status.slice(1)}
+                        {ground.status === "Avaliable" ? "Available" : ground.status === "Unavaliable" ? "Unavailable" : ground.status}
                       </span>
                     </td>
                     <td className="py-4 px-4">
@@ -130,36 +166,23 @@ export default function OrganizerGrounds() {
                         <Motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
-                          onClick={() =>
-                            toast.success(
-                              `${ground.status === "active" ? "Deactivated" : "Activated"} ${ground.name}`
-                            )
-                          }
-                          className={`p-2 rounded-lg transition ${
-                            ground.status === "active"
-                              ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                              : "bg-green-500/20 text-green-400 hover:bg-green-500/30"
-                          }`}
-                        >
-                          {ground.status === "active" ? (
-                            <PowerOff className="w-4 h-4" />
-                          ) : (
-                            <Power className="w-4 h-4" />
-                          )}
-                        </Motion.button>
-                        <Motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition"
+                          onClick={() => navigate(`/organizer/grounds/edit-ground/${ground._id}`)}
+                          className="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition disabled:opacity-50"
                         >
                           <Edit className="w-4 h-4" />
                         </Motion.button>
                         <Motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
-                          className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition"
+                          onClick={() => handleDelete(ground._id)}
+                          disabled={actionLoading === ground._id}
+                          className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition disabled:opacity-50"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {actionLoading === ground._id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
                         </Motion.button>
                       </div>
                     </td>

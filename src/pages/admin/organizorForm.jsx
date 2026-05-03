@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion as Motion } from "framer-motion";
-import { User, Mail, Phone, MapPin, Lock, Loader2, ArrowLeft } from "lucide-react";
+import { User, Mail, Phone, MapPin, Lock, Loader2, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import api from "../../api/api";
@@ -20,6 +20,7 @@ export default function AddOrganizorForm() {
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -504,15 +505,22 @@ export default function AddOrganizorForm() {
                     size={20}
                   />
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Must contain uppercase, lowercase & number"
                     disabled={loading}
                     className={`w-full bg-[#0a0f1c]/50 border ${errors.password ? "border-red-500" : "border-gray-700"
-                      } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed`}
+                      } rounded-lg px-10 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition disabled:opacity-50 disabled:cursor-not-allowed pr-12`}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
                 </div>
                 {errors.password && (
                   <Motion.p

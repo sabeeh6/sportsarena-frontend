@@ -22,6 +22,7 @@ import ContactUs from "./pages/Home/contact.jsx";
 import OrganizerPanel from "./pages/organizer/OrganizerPanel.jsx";
 import OrganizerDashboard from "./pages/organizer/OrganizerDashboard.jsx";
 import OrganizerGrounds from "./pages/organizer/OrganizerGrounds.jsx";
+import OrganizerGroundForm from "./pages/organizer/OrganizerGroundForm.jsx";
 
 function App() {
   const location = useLocation();
@@ -113,7 +114,11 @@ function App() {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<OrganizerDashboard />} />
-          <Route path="grounds" element={<OrganizerGrounds />} />
+          <Route path="grounds">
+            <Route index element={<OrganizerGrounds />} />
+            <Route path="add-ground" element={<OrganizerGroundForm />} />
+            <Route path="edit-ground/:id" element={<OrganizerGroundForm />} />
+          </Route>
         </Route>
 
         {/* 404 */}

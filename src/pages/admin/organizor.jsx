@@ -83,7 +83,7 @@ export const OrganizorsPage = () => {
       const response = await api.put(endpoint);
       const { data } = response;
 
-      if (response.ok) {
+      if (response.status === 200 && data.success) {
         toast.success(
           data.message || `Organizer ${currentStatus === "active" ? "deactivated" : "activated"} successfully`
         );
