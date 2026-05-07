@@ -19,9 +19,6 @@ import { Link } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 
-
-const API_URL = 'http://localhost:5000/api';
-
 const roles = [
   { value: 'user', label: 'User', icon: User },
   { value: 'company', label: 'Company', icon: Shield },
@@ -181,23 +178,19 @@ export default function RegistrationPage() {
         zipcode: Number(formData.zipcode),
       };
 
-      const response = await api.post(`/auth/create-user`, {
-        // method: 'POST',
-        // headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      // Using Axios correctly - pass payload as second argument
+      const response = await api.post(`/auth/create-user`, payload);
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.data?.success) {
         setSuccess(true);
       } else {
-        setErrors({ general: data.message || 'Registration failed' });
+        setErrors({ general: response.data?.message || 'Registration failed' });
       }
     } catch (error) {
-      setErrors({ general: 'Registration failed. Please try again.' });
-      console.log("Error SignUp" , error);
-      
+      // Handle both network errors and validation errors from backend
+      const errorMessage = error.response?.data?.message || error.message || 'Registration failed. Please try again.';
+      setErrors({ general: errorMessage });
+      console.error("Error SignUp:", error);
     } finally {
       setSubmitting(false);
     }
