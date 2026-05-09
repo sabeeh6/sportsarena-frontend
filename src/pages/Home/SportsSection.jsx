@@ -104,7 +104,7 @@ export default function SportsSection() {
         </motion.div>
 
         {/* Sports Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-8 mb-20">
           {sportsData.map((sport, index) => (
             <SportsCard key={sport.name} {...sport} index={index} />
           ))}

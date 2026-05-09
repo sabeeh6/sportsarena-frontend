@@ -23,6 +23,9 @@ import OrganizerPanel from "./pages/organizer/OrganizerPanel.jsx";
 import OrganizerDashboard from "./pages/organizer/OrganizerDashboard.jsx";
 import OrganizerGrounds from "./pages/organizer/OrganizerGrounds.jsx";
 import OrganizerGroundForm from "./pages/organizer/OrganizerGroundForm.jsx";
+import { UserPanel } from "./pages/user/UserPanel.jsx";
+import UserDashboard from "./pages/user/userDashboard.jsx";
+import { Grounds } from "./pages/user/Grounds.jsx";
 
 function App() {
   const location = useLocation();
@@ -69,7 +72,7 @@ function App() {
   return (
     <>
       <ScrollToTop />
-      <CookieBanner onAccept={handleConsentAccept} />
+      {/* <CookieBanner onAccept={handleConsentAccept} /> */}
 
       <Routes>
         {/* Public Routes */}
@@ -118,6 +121,19 @@ function App() {
             <Route index element={<OrganizerGrounds />} />
             <Route path="add-ground" element={<OrganizerGroundForm />} />
             <Route path="edit-ground/:id" element={<OrganizerGroundForm />} />
+          </Route>
+        </Route>
+
+        <Route
+        path="/user"
+        element={
+          <PrivateRoute requiredRole='user'> <UserPanel/> </PrivateRoute>
+        }
+        >
+          <Route index element={<Navigate to="dashboard" replace/>} />
+          <Route path="dashboard" element={<UserDashboard/>} />
+          <Route path="ground" >
+            <Route index element={<Grounds/>} />
           </Route>
         </Route>
 

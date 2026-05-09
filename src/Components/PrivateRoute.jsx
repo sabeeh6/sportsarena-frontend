@@ -77,6 +77,7 @@ export const PrivateRoute = ({ children, requiredRole = null }) => {
     const redirectMap = {
       admin: '/admin/dashboard',
       organizor: '/organizer/dashboard',
+      user: '/user/dashboard',
     };
     const target = redirectMap[user?.role] || '/';
     return <Navigate to={target} replace />;

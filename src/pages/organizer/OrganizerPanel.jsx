@@ -9,9 +9,9 @@ const organizerNavItems = [
 export default function OrganizerPanel() {
   return (
     <DashboardLayout
-      panelTitle="Organizer Panel"
+      panelTitle="Organizer Panel"  
       navItems={organizerNavItems}
-      logoutRedirect="/login"
+      logoutRedirect="/logout"
     />
   );
 }

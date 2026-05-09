@@ -109,6 +109,7 @@ const SportsLoginPage = () => {
       const redirectMap = {
         admin: '/admin/dashboard',
         organizor: '/organizer/dashboard',
+        user: '/user/dashboard',
       };
       const redirectPath = redirectMap[userInfo.role] || '/';
       window.location.href = redirectPath;
