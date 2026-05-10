@@ -80,7 +80,7 @@ function App() {
         <Route path="/apply" element={<TournamentApplicationForm />} />
         <Route path="/tournaments" element={<Tournament />} />
         <Route path="/about" element={<AboutPage />} />
-        {/* <Route path="/contact" element={<ContactUs />} /> */}
+        <Route path="/contact" element={<ContactUs />} />
         <Route path="/tournaments/:category" element={<Tournament />} />
         <Route path="/policy" element={<PrivacyPolicyPage />} />
         

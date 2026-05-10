@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion as Motion } from "framer-motion";
-import { MapPin, Loader2, ArrowLeft, DollarSign, ListTodo, Type, Save } from "lucide-react";
+import { MapPin, Loader2, ArrowLeft, DollarSign, ListTodo, Type, Save, Image as ImageIcon, Upload } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/api";
 import { toast, Toaster } from "react-hot-toast";
@@ -19,6 +19,8 @@ export default function OrganizerGroundForm() {
     description: "",
     status: "Avaliable",
   });
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditMode);
@@ -39,6 +41,9 @@ export default function OrganizerGroundForm() {
               description: ground.description || "",
               status: ground.status || "Avaliable",
             });
+            if (ground.images) {
+              setImagePreview(ground.images);
+            }
           }
         } catch (error) {
           console.error("Error fetching ground details:", error);
@@ -66,6 +71,22 @@ export default function OrganizerGroundForm() {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select a valid image file");
+        return;
+      }
+      setImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.groundName.trim()) newErrors.groundName = "Ground name is required";
@@ -90,18 +111,27 @@ export default function OrganizerGroundForm() {
 
     setLoading(true);
     try {
-      const payload = {
-        groundName: formData.groundName.trim(),
-        type: formData.type,
-        price: Number(formData.price),
-        location: formData.location.trim(),
-        description: formData.description.trim(),
-        status: formData.status,
+      const payload = new FormData();
+      payload.append("groundName", formData.groundName.trim());
+      payload.append("type", formData.type);
+      payload.append("price", Number(formData.price));
+      payload.append("location", formData.location.trim());
+      payload.append("description", formData.description.trim());
+      payload.append("status", formData.status);
+      
+      if (image) {
+        payload.append("image", image);
+      }
+
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
       };
 
       const response = isEditMode 
-        ? await api.put(`/organizor/update-Ground/${id}`, payload)
-        : await api.post("/organizor/create-Ground", payload);
+        ? await api.put(`/organizor/update-Ground/${id}`, payload, config)
+        : await api.post("/organizor/create-Ground", payload, config);
       
       if (response.data) {
         toast.success(response.data.message || (isEditMode ? "Ground updated successfully!" : "Ground created successfully!"), {
@@ -228,6 +258,33 @@ export default function OrganizerGroundForm() {
                 {errors.location && (
                   <Motion.p initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 text-sm mt-1 flex items-center gap-1"><span>⚠️</span> {errors.location}</Motion.p>
                 )}
+              </div>
+
+              {/* Image Upload */}
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">Ground Image</label>
+                <div className="relative border-2 border-dashed border-gray-700/80 hover:border-orange-500/50 rounded-xl bg-[#0a0f1c]/50 transition-all overflow-hidden flex flex-col items-center justify-center min-h-[200px]">
+                  {imagePreview ? (
+                    <div className="relative w-full h-full">
+                      <img src={imagePreview} alt="Ground Preview" className="w-full h-[300px] object-cover" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition flex items-center justify-center backdrop-blur-sm">
+                         <label className="cursor-pointer bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition shadow-xl">
+                            <Upload size={18} /> Change Image
+                            <input type="file" accept="image/*" onChange={handleImageChange} disabled={loading} className="hidden" />
+                         </label>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full p-8 text-gray-400 hover:text-orange-400 transition group">
+                      <div className="w-16 h-16 rounded-full bg-[#1a2235] group-hover:bg-orange-500/20 flex items-center justify-center mb-4 transition">
+                         <ImageIcon size={32} />
+                      </div>
+                      <span className="font-medium text-lg mb-1">Click to upload an image</span>
+                      <span className="text-sm opacity-70">JPEG, PNG, WEBP (Max 5MB)</span>
+                      <input type="file" accept="image/*" onChange={handleImageChange} disabled={loading} className="hidden" />
+                    </label>
+                  )}
+                </div>
               </div>
 
               {/* Description */}

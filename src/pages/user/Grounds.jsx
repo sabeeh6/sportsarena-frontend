@@ -50,9 +50,6 @@ export const Grounds =()=>{
             Grounds Page
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-8">
             <UserGroundCards/>
-                      {/* {sportsData.map((sport, index) => (
-                        <SportsCard key={sport.name} {...sport} index={index} />
-                      ))} */}
                     </div>
         </div>
     </>)
